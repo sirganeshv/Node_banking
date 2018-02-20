@@ -13,15 +13,22 @@ using v8::String;
 using v8::Number;
 using v8::Value;
 
-	
 void printname(const FunctionCallbackInfo<Value>& args) {
+	Isolate* isolate = args.GetIsolate();
+	Local<Object> obj = Object::New(isolate);
 	customer_details customer;
 	v8::String::Utf8Value param1(args[0]->ToString());
 	std::string name = std::string(*param1);
 	strcpy(customer.customer_name,name.c_str());
+	obj->Set(String::NewFromUtf8(isolate, "name"), 
+                            String::NewFromUtf8(isolate, customer.customer_name));
 	customer.age = args[1]->NumberValue();	
+	obj->Set(String::NewFromUtf8(isolate, "age"), 
+                            Number::New(isolate, customer.age));
 	int32_t phone_no = args[2]->NumberValue();
 	//cout<<"Numeric "<<phone_no;
+	obj->Set(String::NewFromUtf8(isolate, "phone_no"), 
+                            Number::New(isolate, phone_no));
 	strcpy(customer.phone_no,std::to_string(phone_no).c_str());	
 	//cout<<customer.phone_no;
 	v8::String::Utf8Value param2(args[3]->ToString());
@@ -43,6 +50,8 @@ void printname(const FunctionCallbackInfo<Value>& args) {
 	cout<<"Your account number is "<<acc_no;
 	customer.acc_no = acc_no;
 	close_db();
+	args.GetReturnValue().Set(obj);
+	
 }
 
 void init(Local<Object> exports) {
