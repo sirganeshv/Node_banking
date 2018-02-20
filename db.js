@@ -24,6 +24,11 @@ app.post('/id', function(req, res) {
 	console.log("Phone_no = " + data.phone_no);
 });
 
+app.post('/id', function(req, res) {
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	res.end();
+});
+
 app.get('/',function(req,resp) {
 	fs.readFile("addAccount.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
