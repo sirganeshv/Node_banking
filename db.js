@@ -22,7 +22,7 @@ app.post('/id', function(req, res) {
 });
 
 app.get('/',function(req,resp) {
-	fs.readFile("db_page.html", function (error, pgResp) {
+	fs.readFile("addAccount.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write("test");
 			resp.write(pgResp);
