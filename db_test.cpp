@@ -13,7 +13,7 @@ using v8::String;
 using v8::Number;
 using v8::Value;
 
-void printname(const FunctionCallbackInfo<Value>& args) {
+void add_account(const FunctionCallbackInfo<Value>& args) {
 	Isolate* isolate = args.GetIsolate();
 	Local<Object> obj = Object::New(isolate);
 	customer_details customer;
@@ -55,7 +55,7 @@ void printname(const FunctionCallbackInfo<Value>& args) {
 }
 
 void init(Local<Object> exports) {
-	NODE_SET_METHOD(exports, "printname", printname);
+	NODE_SET_METHOD(exports, "add_account", add_account);
 }
 
 NODE_MODULE(demo1, init)

@@ -16,7 +16,7 @@ app.post('/id', function(req, res) {
 	res.writeHead(200, { 'Content-Type': 'text/html' });
 	console.log("going to insert");
 	res.write("writing customer data");
-	var data = addon.printname(req.body.name,req.body.age,req.body.phone,req.body.address,req.body.passphrase,req.body.security_qn,req.body.security_ans);
+	var data = addon.add_account(req.body.name,req.body.age,req.body.phone,req.body.address,req.body.passphrase,req.body.security_qn,req.body.security_ans);
 	console.log("inserted");
 	res.end();
 	console.log("Name = " + data.name)
