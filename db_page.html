@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>CSS3 Contact Form</title>
+</head>
+<body>
+<div id="contact">
+	<h1>Send an email</h1>
+	<form action="http://127.0.0.1:8080/id" method="post">
+		<fieldset>
+		<label for="name">Name:</label>
+		<input type="text" id="name" name="name" placeholder="Enter your full name" />
+		<br/><br/>
+		<label for="age">Age:</label>
+		<input type="text" id="age" name="age" placeholder="Enter your age" />
+		<br/><br/>
+		<label for="phone">Phone_no:</label>
+		<input type="number" id="phone" name="phone" placeholder="Enter your phone_no" />
+		<br/><br/>
+		<label for="address">Address:</label>
+		<textarea id="address" name="address" placeholder="What's your address?"></textarea>
+		<br/><br/>
+		<label for="passphrase">Passphrase:</label>
+		<input type ="text" id="passphrase" name = "passphrase" placeholder="What's your passphrase?" />
+		<br/><br/>
+		<label for="security_qn">Security Question:</label>
+		<input type ="text" id="security_qn" name="security_qn" placeholder="What's your question?" />
+		<br/><br/>
+		<label for="security_ans">Security Answer:</label>
+		<input type ="text" id="security_ans" name="security_ans" placeholder="What's your answer?" />
+		<br/><br/>
+		
+		<br/><br/>
+		<input type="submit" value="Send message" />
+		</fieldset>
+	</form>
+</div>
+</body>
+</html>
