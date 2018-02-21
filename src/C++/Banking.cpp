@@ -5,6 +5,7 @@
 //#include <bits/stdc++.h>
 #include<stdbool.h>
 //#include "WinTimer.h"
+#include <node.h>
 #include "valid.h"
 #include "timestamp.h"
 #include "file_handler.h"
@@ -298,8 +299,10 @@ void clear_limits() {
 		customer_infos[i].no_of_transactions = 0;
 		customer_infos[i].amount_withdrawn = 0;
 	}
+	init_db();
 	write_files();
 	load_files();
+	close_db();
 	clear_limits_timer = CTimer(clear_limits, (mktime(&last_clearing_time) - mktime(&current))*1000);
 	clear_limits_timer.Start();
 }
@@ -391,59 +394,6 @@ void operator_login() {
 		operator_login();
 	}
 }
-
-
-//Adds account for new customer and assigns account number
-void add_account(){
-	struct customer_details customer ;
-	cout<<"Enter the following details\n";
-	cout<<"Customer_name\t";
-	cin>>customer.customer_name;
-	while(!is_valid_name(customer.customer_name)) {
-		cout<<"Enter your name";
-		cin>>customer.customer_name;
-	}
-	cout<<"Age\t\t";
-	cin>>customer.age;
-	cout<<"Phone No\t";
-	cin>>customer.phone_no;
-	while(strlen(customer.phone_no) !=4 || !(is_valid_no(customer.phone_no))) {
-		cout<<"Enter valid number(4 digits)\n";
-		cin>>customer.phone_no;
-	}
-	cout<<"Address\t\t";
-	cin>>customer.address;
-	strcpy(customer.passphrase,get_passphrase().c_str());
-	string str;
-	cout<<"Enter your security question\n";
-	cin.ignore();
-	getline(cin,str);
-	strcpy(customer.security_question,str.c_str());
-	cout<<"Your answer : ";
-	getline(cin,str);
-	strcpy(customer.security_answer,str.c_str());
-	customer.balance = 1000;
-	gettimeofday(&customer.last_accessed_time);
-	customer_frequency.push_back(1);
-	customer_list.push_back(customer);	
-	int acc_no = write_customer(customer);
-	cout<<"Your account number is "<<acc_no;
-	customer.acc_no = acc_no;
-	struct transaction initial_transaction;
-	initial_transaction.acc_no = customer.acc_no;
-	transactions.push_back(initial_transaction);
-	current_operator->customer_acc_no_list[current_operator->no_of_customers] = customer.acc_no;
-	current_operator->no_of_customers++;
-	struct customer_info customer_information;
-	customer_information.acc_no = customer.acc_no;
-	customer_infos.push_back(customer_information);
-	srand(1);
-	write_files();
-	srand(1);
-	load_files();
-	//load_customers();
-}
-
 
 
 //Update account details (phone_no and address for existing customer)
@@ -1365,7 +1315,7 @@ bool forgot_password(int i) {
 int main() {
 		init_db();
 		initialize();
-		while(true) {
+		/*while(true) {
 			cout<<"\n\n1.Add account\t\t2.Update details\t3.Delete account\t4.Display customer(using Acc no)\n";
 			cout<<"5.Display cusomer list\t6.Add money\t\t7.Withdraw money\t8.Transfer money\t9.Acc statement\n";
 			cout<<"10.Acc summary(time)\t11.Schedule transfer\t12.Create operator\t13.Exit\t\t\t16.Clear cache	\n";
@@ -1550,8 +1500,74 @@ int main() {
 				default:
 					cout<<"Enter the correct option\n";
 			}	
-		}
+		}*/
 	}
+namespace demo1 {
 
+using v8::FunctionCallbackInfo;
+using v8::Isolate;
+using v8::Local;
+using v8::Object;
+using v8::String;
+using v8::Number;
+using v8::Value;
+
+//Adds account for new customer and assigns account number
+void add_account(const FunctionCallbackInfo<Value>& args){
+	Isolate* isolate = args.GetIsolate();
+	Local<Object> obj = Object::New(isolate);
+	customer_details customer;
+	v8::String::Utf8Value param1(args[0]->ToString());
+	std::string name = std::string(*param1);
+	strcpy(customer.customer_name,name.c_str());
+	customer.age = args[1]->NumberValue();	
+	int32_t phone_no = args[2]->NumberValue();
+	strcpy(customer.phone_no,std::to_string(phone_no).c_str());	
+	v8::String::Utf8Value param2(args[3]->ToString());
+	std::string address = std::string(*param2);
+	strcpy(customer.address,address.c_str());
+	v8::String::Utf8Value param3(args[4]->ToString());
+	std::string passphrase = std::string(*param3);
+	strcpy(customer.passphrase,passphrase.c_str());
+	v8::String::Utf8Value param4(args[5]->ToString());
+	std::string security_qn = std::string(*param4);
+	strcpy(customer.security_question,security_qn.c_str());
+	v8::String::Utf8Value param5(args[6]->ToString());
+	std::string security_ans = std::string(*param5);
+	strcpy(customer.security_answer,security_ans.c_str());	
+	customer.balance = 1000;
+	gettimeofday(&customer.last_accessed_time);
+	init_db();
+	int acc_no = write_customer_into_db(customer);
+	cout<<"Your account number is "<<acc_no;
+	customer.acc_no = acc_no;
+	struct transaction initial_transaction;
+	initial_transaction.acc_no = customer.acc_no;
+	transactions.push_back(initial_transaction);
+	current_operator->customer_acc_no_list[current_operator->no_of_customers] = customer.acc_no;
+	current_operator->no_of_customers++;
+	struct customer_info customer_information;
+	customer_information.acc_no = customer.acc_no;
+	customer_infos.push_back(customer_information);
+	srand(1);
+	write_files();
+	srand(1);
+	load_files();
+	close_db();
+}
+
+
+void callMain(const FunctionCallbackInfo<Value>& args) {
+	main();
+}	
+	
+void init(Local<Object> exports) {
+	NODE_SET_METHOD(exports, "main", callMain);
+	NODE_SET_METHOD(exports, "add_account", add_account);
+}
+
+NODE_MODULE(demo1, init)
+
+}  
 //-static-libgcc -std=c++14 -std=gnu++14
 //-std=c++14 -std=gnu++14
