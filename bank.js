@@ -1,4 +1,4 @@
-const addon = require('./build/Release/dbaddon');
+const addon = require('./build/Release/bankaddon');
 var http = require('http');
 var fs = require('fs');
 var express = require('express');
@@ -10,37 +10,22 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 var http = require("http");
 
-
+app.get('/',function(req,resp) {
+	fs.readFile("addAccount.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write("test");
+			resp.write(pgResp);
+			resp.end();
+	});
+});
 
 app.post('/add_customer', function(req, res) {
 	res.writeHead(200, { 'Content-Type': 'text/html' });
 	console.log("going to insert");
 	res.write("writing customer data");
-	var data = addon.add_account(req.body.name,req.body.age,req.body.phone,req.body.address,req.body.passphrase,req.body.security_qn,req.body.security_ans);
+	addon.add_account(req.body.name,req.body.age,req.body.phone,req.body.address,req.body.passphrase,req.body.security_qn,req.body.security_ans);
 	console.log("inserted");
 	res.end();
-	console.log("Name = " + data.name)
-	console.log("Age = " + data.age);
-	console.log("Phone_no = " + data.phone_no);
-});
-
-app.post('/deposit', function(req, res) {
-	res.writeHead(200, { 'Content-Type': 'text/html' });
-	addon.deposit(req.acc_no,req.money);
-	res.end();
-});
-
-app.post('/id', function(req, res) {
-	res.writeHead(200, { 'Content-Type': 'text/html' });
-	res.end();
-});
-
-app.get('/add',function(req,resp) {
-	fs.readFile("addAccount.html", function (error, pgResp) {
-			resp.writeHead(200, { 'Content-Type': 'text/html' });
-			resp.write(pgResp);
-			resp.end();
-	});
 });
 
 app.get('/deposit',function(req,resp) {
@@ -51,7 +36,19 @@ app.get('/deposit',function(req,resp) {
 	});
 });
 
+app.post('/deposit', function(req, res) {
+	console.log("Entered deposit");
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	res.write("Depositing");
+	console.log("Will be calling it ");
+	addon.deposit(req.body.acc_no,req.body.money);
+	res.end();
+});
+
+
+
 app.listen(8080, function() {
+	addon.main();
 	console.log('Server running at http://127.0.0.1:8080/');
 });
 

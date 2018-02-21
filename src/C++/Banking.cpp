@@ -299,10 +299,8 @@ void clear_limits() {
 		customer_infos[i].no_of_transactions = 0;
 		customer_infos[i].amount_withdrawn = 0;
 	}
-	init_db();
 	write_files();
 	load_files();
-	close_db();
 	clear_limits_timer = CTimer(clear_limits, (mktime(&last_clearing_time) - mktime(&current))*1000);
 	clear_limits_timer.Start();
 }
@@ -572,11 +570,12 @@ bool deposit_money(int i,int deposit_value) {
 	//customer_list[i].frequency++;
 	customer_frequency[i]++;
 	cout<<"Frequency is "<<customer_frequency[i];
-	srand(1);
 	write_files();
-	update_customer(customer_list[i]);
-	srand(1);
+	cout<<"wrote files\n";
 	load_files();
+	cout<<"loaded files\n";
+	update_customer_in_db(customer_list[i]);
+	cout<<"wrote customer\n";
 	return true;
 }
 
@@ -1537,7 +1536,6 @@ void add_account(const FunctionCallbackInfo<Value>& args){
 	strcpy(customer.security_answer,security_ans.c_str());	
 	customer.balance = 1000;
 	gettimeofday(&customer.last_accessed_time);
-	init_db();
 	int acc_no = write_customer_into_db(customer);
 	cout<<"Your account number is "<<acc_no;
 	customer.acc_no = acc_no;
@@ -1553,7 +1551,42 @@ void add_account(const FunctionCallbackInfo<Value>& args){
 	write_files();
 	srand(1);
 	load_files();
-	close_db();
+}
+
+void deposit(const FunctionCallbackInfo<Value>& args) {
+	cout<<"inside deposit\n";
+	int32_t acc_no = args[0]->NumberValue();
+	cout<<acc_no<<"\n";
+	int j;
+	customer_details customer;
+	for(j = 0;j < get_cache_size();j++) {
+		customer = customer_list[j];
+		if(customer.acc_no == acc_no) {
+			int i = find_customer_position(acc_no);
+			customer_list.push_back(customer_list[i]);
+			customer_list.erase(customer_list.begin() + i);
+			customer_frequency.push_back(customer_frequency[i]);
+			customer_frequency.erase(customer_frequency.begin() + i);
+			break;
+		}
+	}
+	cout<<"let us read customer\n";
+	if(j == get_cache_size())
+		bool success = read_customer(acc_no);
+	cout<<"read\n";
+	int i = find_customer_position(acc_no);
+	if(i == -1)
+		return;
+	cout<<"present\n";
+	int32_t deposit_value = args[1]->NumberValue();
+	cout<<deposit_value<<"\n";
+	bool is_successful = deposit_money(i,deposit_value);
+	cout<<"deposited\n";
+	if(is_successful)
+		record_deposit(acc_no,deposit_value);
+	cout<<"successfully record_deposit\n";
+	write_files();
+	load_files();
 }
 
 
@@ -1564,6 +1597,7 @@ void callMain(const FunctionCallbackInfo<Value>& args) {
 void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "main", callMain);
 	NODE_SET_METHOD(exports, "add_account", add_account);
+	NODE_SET_METHOD(exports, "deposit", deposit);
 }
 
 NODE_MODULE(demo1, init)

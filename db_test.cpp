@@ -26,11 +26,9 @@ void add_account(const FunctionCallbackInfo<Value>& args) {
 	obj->Set(String::NewFromUtf8(isolate, "age"), 
                             Number::New(isolate, customer.age));
 	int32_t phone_no = args[2]->NumberValue();
-	//cout<<"Numeric "<<phone_no;
 	obj->Set(String::NewFromUtf8(isolate, "phone_no"), 
                             Number::New(isolate, phone_no));
 	strcpy(customer.phone_no,std::to_string(phone_no).c_str());	
-	//cout<<customer.phone_no;
 	v8::String::Utf8Value param2(args[3]->ToString());
 	std::string address = std::string(*param2);
 	strcpy(customer.address,address.c_str());
@@ -54,8 +52,14 @@ void add_account(const FunctionCallbackInfo<Value>& args) {
 	
 }
 
+void deposit(const FunctionCallbackInfo<Value>& args){
+	Isolate* isolate = args.GetIsolate();
+}
+
+
 void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "add_account", add_account);
+	NODE_SET_METHOD(exports, "deposit", deposit);
 }
 
 NODE_MODULE(demo1, init)
