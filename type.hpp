@@ -38,3 +38,19 @@ void gettimeofday(struct timeval * tp)
     tp->tv_sec  = (long) ((time - EPOCH) / 10000000L);
     tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
 }
+
+
+/*
+
+{
+			"target_name": "dbaddon",
+			"sources": ["db_test.cpp","db.h","type.hpp"],
+			"include_dirs": [
+				"C:/Users/ganesh-pt1936/Downloads/mysql-connector-c-6.1.11-winx64/include" ,"E:/Node_test"
+			],
+			"libraries": [
+				"C:/Users/ganesh-pt1936/Downloads/mysql-connector-c-6.1.11-winx64/lib/libmysql",
+			],
+			"cflags": [ "-std=c++14" ],
+		},
+		*/
