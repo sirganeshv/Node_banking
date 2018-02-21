@@ -84,7 +84,7 @@ app.get('/schedule_transfer',function(req,resp) {
 
 app.post('/schedule_transfer', function(req, res) {
 	res.writeHead(200, { 'Content-Type': 'text/html' });
-	res.write("Deposited");
+	res.write("Scheduled");
 	addon.schedule_transfer(req.body.withdraw_acc_no,req.body.money,req.body.acc_no,req.body.customer_passphrase,req.body.operator_password,req.body.hour,req.body.min);
 	res.end();
 });
