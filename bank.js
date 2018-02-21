@@ -73,6 +73,21 @@ app.post('/transfer', function(req, res) {
 	res.end();
 });
 
+app.get('/fixed_deposit',function(req,resp) {
+	fs.readFile("fixed_deposit.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+app.post('/fixed_deposit', function(req, res) {
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	res.write("Deposited");
+	addon.fixed_deposit(req.body.acc_no,req.body.money,req.body.duration);
+	res.end();
+});
+
 app.listen(8080, function() {
 	addon.main();
 	console.log('Server running at http://127.0.0.1:8080/');

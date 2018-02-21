@@ -1201,78 +1201,6 @@ void clear_fd() {
 	load_files();
 }
 
-//Do fixed deposit
-void fixed_deposit() {
-	int acc_no = get_acc_no();
-	int j;
-	struct customer_details customer;
-	struct fixed_deposit deposit;
-	for(j = 0;j < customer_list.size();j++) {
-		if(customer_list[j].acc_no == acc_no) {
-			customer_list.push_back(customer_list[j]);
-			customer_list.erase(customer_list.begin()+j);
-			customer_frequency.push_back(customer_frequency[j]);
-			customer_frequency.erase(customer_frequency.begin() + j);
-			break;
-		}
-	}
-	if(j == customer_list.size())
-		read_customer(acc_no);
-	int i = find_customer_position(acc_no);
-	if(i == -1)
-		return;
-	//int deposit_value,duration;
-	cout<<"How much do you want to deposit\n";
-	cin>>deposit.principal;
-	while(deposit.principal <= 0) {
-		cout<<"Enter valid amount\n";
-		cin>>deposit.principal;
-	}
-	if(customer_list[i].balance >= deposit.principal) {
-		customer_list[i].balance -= deposit.principal;
-	}
-	cout<<"For what period do you want to deposit(in minutes)\n";
-	cin>>deposit.duration;
-	while(deposit.duration <= 0) {
-		cout<<"Enter valid duration\n";
-		cin>>deposit.duration;
-	}
-	if(customer_list[i].age<=60)
-		deposit.rate_of_interest = INTEREST_NORMAL;
-	else
-		deposit.rate_of_interest = INTEREST_SENIOR;
-	deposit.acc_no = acc_no;
-	
-	deposit.amount = deposit.principal + (deposit.principal*deposit.duration*deposit.rate_of_interest)/100;
-	cout<<"Your interest will be "<<deposit.amount - deposit.principal<<"  and your maturity amount will be "<<deposit.amount<<"\n";
-	tm current_time = get_timestamp();
-	deposit.start_time = current_time;
-	struct transaction withdraw_transaction;
-	withdraw_transaction.timestamp = deposit.start_time;
-	withdraw_transaction.acc_no = acc_no;
-	strcpy(withdraw_transaction.withdraw,(to_string(deposit.principal)).c_str());
-	withdraw_transaction.is_completed = true;
-	cout<<"Your balance is "<<customer_list[i].balance<<"\n";
-	withdraw_transaction.balance = customer_list[i].balance;
-	transactions.push_back(withdraw_transaction);
-	tm maturity_time = add_minutes_to_timestamp(current_time,deposit.duration);
-	deposit.maturity_time = maturity_time;
-	deposits.push_back(deposit);	
-	cout<<"Maturity at "<<deposit.maturity_time.tm_hour<<" : "<<deposit.maturity_time.tm_min<<" : "<<deposit.maturity_time.tm_sec<<"\n";
-	if(is_timestamp_less_than(deposit.maturity_time,next_fd_time) || deposits.size() == 1 || 
-		(is_timestamp_equal(deposit.maturity_time,next_fd_time) && (deposit.maturity_time.tm_sec < next_fd_time.tm_sec))) {
-		next_fd_timer.Stop();
-		next_fd_time = deposit.maturity_time;
-		next_fd_timer = CTimer(clear_fd, (mktime(&maturity_time) - mktime(&current_time))*1000);
-		next_fd_timer.Start();
-	}
-	srand(1);
-	write_files();
-	update_customer(customer_list[i]);
-	srand(1);
-	load_files();
-}
-
 //Gives the option to reset password based on security question
 bool forgot_password(int i) {
 	cout<<customer_list[i].security_question<<"\n";
@@ -1733,6 +1661,78 @@ void transfer_money(const FunctionCallbackInfo<Value>& args) {
 }
 
 
+//Do fixed deposit
+void fixed_deposit(const FunctionCallbackInfo<Value>& args) {
+	int32_t acc_no = args[0]->NumberValue();
+	int j;
+	struct customer_details customer;
+	struct fixed_deposit deposit;
+	for(j = 0;j < customer_list.size();j++) {
+		if(customer_list[j].acc_no == acc_no) {
+			customer_list.push_back(customer_list[j]);
+			customer_list.erase(customer_list.begin()+j);
+			customer_frequency.push_back(customer_frequency[j]);
+			customer_frequency.erase(customer_frequency.begin() + j);
+			break;
+		}
+	}
+	if(j == customer_list.size())
+		read_customer(acc_no);
+	int i = find_customer_position(acc_no);
+	if(i == -1)
+		return;
+	//int deposit_value,duration;
+	deposit.principal = args[1]->NumberValue();
+	while(deposit.principal <= 0) {
+		cout<<"Enter valid amount\n";
+		cin>>deposit.principal;
+	}
+	if(customer_list[i].balance >= deposit.principal) {
+		customer_list[i].balance -= deposit.principal;
+	}
+	deposit.duration = args[2]->NumberValue();
+	while(deposit.duration <= 0) {
+		cout<<"Enter valid duration\n";
+		cin>>deposit.duration;
+	}
+	if(customer_list[i].age<=60)
+		deposit.rate_of_interest = INTEREST_NORMAL;
+	else
+		deposit.rate_of_interest = INTEREST_SENIOR;
+	deposit.acc_no = acc_no;
+	
+	deposit.amount = deposit.principal + (deposit.principal*deposit.duration*deposit.rate_of_interest)/100;
+	cout<<"Your interest will be "<<deposit.amount - deposit.principal<<"  and your maturity amount will be "<<deposit.amount<<"\n";
+	tm current_time = get_timestamp();
+	deposit.start_time = current_time;
+	struct transaction withdraw_transaction;
+	withdraw_transaction.timestamp = deposit.start_time;
+	withdraw_transaction.acc_no = acc_no;
+	strcpy(withdraw_transaction.withdraw,(to_string(deposit.principal)).c_str());
+	withdraw_transaction.is_completed = true;
+	cout<<"Your balance is "<<customer_list[i].balance<<"\n";
+	withdraw_transaction.balance = customer_list[i].balance;
+	transactions.push_back(withdraw_transaction);
+	tm maturity_time = add_minutes_to_timestamp(current_time,deposit.duration);
+	deposit.maturity_time = maturity_time;
+	deposits.push_back(deposit);	
+	cout<<"Maturity at "<<deposit.maturity_time.tm_hour<<" : "<<deposit.maturity_time.tm_min<<" : "<<deposit.maturity_time.tm_sec<<"\n";
+	if(is_timestamp_less_than(deposit.maturity_time,next_fd_time) || deposits.size() == 1 || 
+		(is_timestamp_equal(deposit.maturity_time,next_fd_time) && (deposit.maturity_time.tm_sec < next_fd_time.tm_sec))) {
+		next_fd_timer.Stop();
+		next_fd_time = deposit.maturity_time;
+		next_fd_timer = CTimer(clear_fd, (mktime(&maturity_time) - mktime(&current_time))*1000);
+		next_fd_timer.Start();
+	}
+	srand(1);
+	write_files();
+	update_customer(customer_list[i]);
+	srand(1);
+	load_files();
+}
+
+
+
 void callMain(const FunctionCallbackInfo<Value>& args) {
 	main();
 }	
@@ -1743,6 +1743,7 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "deposit", deposit);
 	NODE_SET_METHOD(exports, "withdraw", withdraw);
 	NODE_SET_METHOD(exports, "transfer_money", transfer_money);
+	NODE_SET_METHOD(exports, "fixed_deposit", fixed_deposit);
 }
 
 NODE_MODULE(demo1, init)
