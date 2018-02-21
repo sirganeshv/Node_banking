@@ -73,6 +73,23 @@ app.post('/transfer', function(req, res) {
 	res.end();
 });
 
+
+app.get('/schedule_transfer',function(req,resp) {
+	fs.readFile("schedule_transfer.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+app.post('/schedule_transfer', function(req, res) {
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	res.write("Deposited");
+	addon.schedule_transfer(req.body.withdraw_acc_no,req.body.money,req.body.acc_no,req.body.customer_passphrase,req.body.operator_password,req.body.hour,req.body.min);
+	res.end();
+});
+
+
 app.get('/fixed_deposit',function(req,resp) {
 	fs.readFile("fixed_deposit.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });

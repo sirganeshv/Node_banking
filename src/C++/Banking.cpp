@@ -728,134 +728,6 @@ bool withdraw_money(int i,int withdraw_value) {
 }*/
 
 
-//Schedules transfer in future time
-void schedule_transfer() {
-	int withdraw_acc_no = get_acc_no();
-	int k;
-	for(k = 0;k < customer_list.size();k++) {
-		if(customer_list[k].acc_no == withdraw_acc_no) {
-			customer_list.push_back(customer_list[k]);
-			customer_list.erase(customer_list.begin() +  k );
-			customer_frequency.push_back(customer_frequency[k]);
-			customer_frequency.erase(customer_frequency.begin() + k);
-			break;
-		}
-	}
-	if(k == customer_list.size())
-		read_customer(withdraw_acc_no);
-	int i = find_customer_position(withdraw_acc_no);
-	if(i == -1) 
-		return;
-	if(!is_customer_under_current_operator(i) && !current_operator->is_admin ) {
-		cout<<"The customer is under a different operator";
-		return;
-	}
-	cout<<"Enter the amount to transfer\t\t";
-	int amount;
-	cin>>amount;
-	while(amount <= 0) {
-		cout<<"Enter valid amount\n";
-		cin>>amount;
-	}
-	int acc_no;	
-	if(customer_list[i].balance - amount > 0) {
-		cout<<"Enter account number of the receiver\t";		
-		cin>>acc_no;
-		for(k = 0;k < customer_list.size();k++) {
-			if(customer_list[k].acc_no == acc_no) {
-				customer_list.push_back(customer_list[k]);
-				customer_list.erase(customer_list.begin() +  k );
-				customer_frequency.push_back(customer_frequency[k]);
-				customer_frequency.erase(customer_frequency.begin() + k);
-				break;
-			}
-		}
-		if(k == customer_list.size())
-			read_customer(acc_no);
-		int i = find_customer_position(withdraw_acc_no);
-		int j = find_customer_position(acc_no);
-		if(j == -1) {
-			return;
-		}
-		if(customer_list[i].wrong_attempts >= 3) {
-			cout<<"Locked\nDeposit to unlock\n";
-			return;
-		}
-		if(i == j) {
-			cout<<"You cannot transfer your money to yourself\n";
-			return;
-		}
-		if(!is_passphrase_valid(get_passphrase(),i)) {
-			cout<<"Do you want to use the forget password option ?\n0->No(default)   1->Yes\t";
-			int choice;
-			cin>>choice;
-			int is_changed;
-			if(choice == 1) {
-				is_changed = forgot_password(i);
-				if(!is_changed)
-					return;
-			}
-			else {
-				customer_list[i].wrong_attempts++;
-				update_customer(customer_list[i]);
-				return;
-			}
-		}
-		if(!is_operator_password_correct(get_operator_password())) {
-			return;
-		}
-		int hour,min;
-		while(true) {
-			cout<<"Enter time (hh mm)\t";
-			get_time(&hour,&min);
-			if(hour >= get_timestamp().tm_hour) {
-				if(hour == get_timestamp().tm_hour && min <= get_timestamp().tm_min) {
-					cout<<"Enter future time\n";
-					continue;
-				}
-				break;
-			}
-		}
-		gettimeofday(&customer_list[i].last_accessed_time);
-		//customer_list[i].frequency++;
-		customer_frequency[i]++;
-		tm time = get_timestamp();
-		time.tm_min = min;
-		time.tm_hour = hour;
-		time.tm_sec = 0;
-		struct transaction withdraw_transaction;
-		withdraw_transaction.timestamp = time;
-		withdraw_transaction.acc_no = withdraw_acc_no;
-		strcpy(withdraw_transaction.withdraw,(to_string(amount)).c_str());
-		withdraw_transaction.is_completed = true;
-		pending_transactions.push_back(withdraw_transaction);
-		struct transaction deposit_transaction;
-		deposit_transaction.timestamp = time;
-		deposit_transaction.acc_no = acc_no;
-		strcpy(deposit_transaction.deposit,(to_string(amount)).c_str());
-		deposit_transaction.is_completed = true;
-		pending_transactions.push_back(deposit_transaction);
-		//cout<<"Less or not "<<is_timestamp_less_than(time,next_time)<<"\n";
-		cout<<"Before time is "<<next_time.tm_hour<<" : "<<next_time.tm_min<<" and "<<time.tm_hour<<" : "<<time.tm_min<<"\n";
-		if(pending_transactions.size() == 2  || is_timestamp_less_than(time,next_time)) {
-			next_time = time;
-			//cout<<"NExt time is "<<next_time.tm_hour<<" : "<<next_time.tm_min;
-			//cout<< put_time(&next_time,"%X") << '\n';
-			struct tm current = get_timestamp();
-			timer.Stop();
-			timer = CTimer(listener, (mktime(&time) - mktime(&current))*1000);
-			timer.Start();
-		}
-	}
-	else {
-		cout<<"You do not have sufficient balance";
-	}
-	srand(1);
-	write_files();
-	srand(1);
-	load_files();
-}
-
 
 //Prints the account statement of a user based on account number
 void print_account_statement() {
@@ -1661,6 +1533,140 @@ void transfer_money(const FunctionCallbackInfo<Value>& args) {
 }
 
 
+//Schedules transfer in future time
+void schedule_transfer(const FunctionCallbackInfo<Value>& args) {
+	int withdraw_acc_no = args[0]->NumberValue();
+	int k;
+	for(k = 0;k < customer_list.size();k++) {
+		if(customer_list[k].acc_no == withdraw_acc_no) {
+			customer_list.push_back(customer_list[k]);
+			customer_list.erase(customer_list.begin() +  k );
+			customer_frequency.push_back(customer_frequency[k]);
+			customer_frequency.erase(customer_frequency.begin() + k);
+			break;
+		}
+	}
+	if(k == customer_list.size())
+		read_customer(withdraw_acc_no);
+	int i = find_customer_position(withdraw_acc_no);
+	if(i == -1) 
+		return;
+	if(!is_customer_under_current_operator(i) && !current_operator->is_admin ) {
+		cout<<"The customer is under a different operator";
+		return;
+	}
+	int amount = args[1] -> NumberValue();
+	while(amount <= 0) {
+		cout<<"Enter valid amount\n";
+		cin>>amount;
+	}
+	int acc_no;	
+	if(customer_list[i].balance - amount > 0) {
+		//cout<<"Enter account number of the receiver\t";		
+		acc_no = args[2]->NumberValue();
+		for(k = 0;k < customer_list.size();k++) {
+			if(customer_list[k].acc_no == acc_no) {
+				customer_list.push_back(customer_list[k]);
+				customer_list.erase(customer_list.begin() +  k );
+				customer_frequency.push_back(customer_frequency[k]);
+				customer_frequency.erase(customer_frequency.begin() + k);
+				break;
+			}
+		}
+		if(k == customer_list.size())
+			read_customer(acc_no);
+		int i = find_customer_position(withdraw_acc_no);
+		int j = find_customer_position(acc_no);
+		if(j == -1) {
+			return;
+		}
+		if(customer_list[i].wrong_attempts >= 3) {
+			cout<<"Locked\nDeposit to unlock\n";
+			return;
+		}
+		if(i == j) {
+			cout<<"You cannot transfer your money to yourself\n";
+			return;
+		}
+		v8::String::Utf8Value param1(args[3]->ToString());
+		std::string customer_passphrase = std::string(*param1);
+		if(!is_passphrase_valid(customer_passphrase,i)) {
+			cout<<"Do you want to use the forget password option ?\n0->No(default)   1->Yes\t";
+			int choice;
+			cin>>choice;
+			int is_changed;
+			if(choice == 1) {
+				is_changed = forgot_password(i);
+				if(!is_changed)
+					return;
+			}
+			else {
+				customer_list[i].wrong_attempts++;
+				update_customer(customer_list[i]);
+				return;
+			}
+		}
+		v8::String::Utf8Value param2(args[4]->ToString());
+		std::string operator_password = std::string(*param2);
+		if(!is_operator_password_correct(operator_password)) {
+			return;
+		}
+		int hour,min;
+		while(true) {
+			//cout<<"Enter time (hh mm)\t";
+			//get_time(&hour,&min);
+			hour = args[5]->NumberValue();
+			min = args[6]->NumberValue();
+			if(hour >= get_timestamp().tm_hour) {
+				if(hour == get_timestamp().tm_hour && min <= get_timestamp().tm_min) {
+					cout<<"Enter future time\n";
+					continue;
+				}
+				break;
+			}
+		}
+		gettimeofday(&customer_list[i].last_accessed_time);
+		//customer_list[i].frequency++;
+		customer_frequency[i]++;
+		tm time = get_timestamp();
+		time.tm_min = min;
+		time.tm_hour = hour;
+		time.tm_sec = 0;
+		struct transaction withdraw_transaction;
+		withdraw_transaction.timestamp = time;
+		withdraw_transaction.acc_no = withdraw_acc_no;
+		strcpy(withdraw_transaction.withdraw,(to_string(amount)).c_str());
+		withdraw_transaction.is_completed = true;
+		pending_transactions.push_back(withdraw_transaction);
+		struct transaction deposit_transaction;
+		deposit_transaction.timestamp = time;
+		deposit_transaction.acc_no = acc_no;
+		strcpy(deposit_transaction.deposit,(to_string(amount)).c_str());
+		deposit_transaction.is_completed = true;
+		pending_transactions.push_back(deposit_transaction);
+		//cout<<"Less or not "<<is_timestamp_less_than(time,next_time)<<"\n";
+		cout<<"Before time is "<<next_time.tm_hour<<" : "<<next_time.tm_min<<" and "<<time.tm_hour<<" : "<<time.tm_min<<"\n";
+		if(pending_transactions.size() == 2  || is_timestamp_less_than(time,next_time)) {
+			next_time = time;
+			//cout<<"NExt time is "<<next_time.tm_hour<<" : "<<next_time.tm_min;
+			//cout<< put_time(&next_time,"%X") << '\n';
+			struct tm current = get_timestamp();
+			timer.Stop();
+			timer = CTimer(listener, (mktime(&time) - mktime(&current))*1000);
+			timer.Start();
+		}
+	}
+	else {
+		cout<<"You do not have sufficient balance";
+	}
+	srand(1);
+	write_files();
+	srand(1);
+	load_files();
+}
+
+
+
 //Do fixed deposit
 void fixed_deposit(const FunctionCallbackInfo<Value>& args) {
 	int32_t acc_no = args[0]->NumberValue();
@@ -1743,6 +1749,7 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "deposit", deposit);
 	NODE_SET_METHOD(exports, "withdraw", withdraw);
 	NODE_SET_METHOD(exports, "transfer_money", transfer_money);
+	NODE_SET_METHOD(exports, "schedule_transfer", schedule_transfer);
 	NODE_SET_METHOD(exports, "fixed_deposit", fixed_deposit);
 }
 
