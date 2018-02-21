@@ -90,6 +90,24 @@ app.post('/schedule_transfer', function(req, res) {
 });
 
 
+app.get('/standing_instructions',function(req,resp) {
+	fs.readFile("standing_instructions.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+app.post('/standing_instructions', function(req, res) {
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	res.write("Standing instructions added for every ");
+	res.write(req.body.period);
+	res.write(" minutes");
+	addon.standing_instructions(req.body.withdraw_acc_no,req.body.money,req.body.acc_no,req.body.customer_passphrase,req.body.operator_password,req.body.hour,req.body.min,req.body.period);
+	res.end();
+});
+
+
 app.get('/fixed_deposit',function(req,resp) {
 	fs.readFile("fixed_deposit.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });

@@ -2,11 +2,11 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Bank/schedule Transfer</title>
+<title>Bank/Standing Instructions</title>
 </head>
 <body>
 <div>
-	<form action="http://127.0.0.1:8080/schedule_transfer" method="post">
+	<form action="http://127.0.0.1:8080/standing_instructions" method="post">
 		<fieldset>
 			<label for="withdraw_acc_no">Account Number:</label>
 			<input type="number" id="withdraw_acc_no" name="withdraw_acc_no" placeholder="Enter your Account number" />
@@ -26,6 +26,9 @@
 			<label for="hour">Time:</label>
 			<input type="number" id="hour" name="hour" placeholder="HH" />
 			<input type="number" id="min" name="min" placeholder="MM" />
+			<br/><br/>
+			<label for="period">Period:</label>
+			<input type="number" id="period" name="period" placeholder="Enter periodicity" />
 			<br/><br/>
 			<input type="submit" value="Schedule" />
 		</fieldset>
