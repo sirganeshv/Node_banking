@@ -603,24 +603,6 @@ bool withdraw_money(int i,int withdraw_value) {
 		cout<<"Can withdraw only upto " << MAX_WITHDRAW - customer_infos[k].amount_withdrawn;
 		return false;
 	}
-	if(!is_passphrase_valid(get_passphrase(),i)) {
-		cout<<"Do you want to use the forget password option ?\n0->No(default)   1->Yes\t";
-		int choice;
-		cin>>choice;
-		int is_changed;
-		if(choice == 1) {
-			is_changed = forgot_password(i);
-			if(!is_changed)
-				return false;
-		}
-		else {
-			customer_list[i].wrong_attempts++;
-			update_customer(customer_list[i]);
-			return false;
-		}
-	}
-	if(!is_operator_password_correct(get_operator_password()))
-		return false;
 	customer_list[i].balance -= withdraw_value;
 	gettimeofday(&customer_list[i].last_accessed_time);
 	//customer_list[i].frequency++;
@@ -1589,6 +1571,60 @@ void deposit(const FunctionCallbackInfo<Value>& args) {
 	load_files();
 }
 
+void withdraw(const FunctionCallbackInfo<Value>& args) {
+	int32_t acc_no = args[0]->NumberValue();
+	cout<<acc_no<<"\n";
+	int j;
+	customer_details customer;
+	for(j = 0;j < get_cache_size();j++) {
+		customer = customer_list[j];
+		if(customer.acc_no == acc_no) {
+			int i = find_customer_position(acc_no);
+			customer_list.push_back(customer_list[i]);
+			customer_list.erase(customer_list.begin() + i);
+			customer_frequency.push_back(customer_frequency[i]);
+			customer_frequency.erase(customer_frequency.begin() + i);
+			break;
+		}
+	}
+	cout<<"let us read customer\n";
+	if(j == get_cache_size())
+		bool success = read_customer(acc_no);
+	cout<<"read\n";
+	int i = find_customer_position(acc_no);
+	if(i == -1)
+		return;
+	customer = customer_list[i];
+	if(customer.wrong_attempts >= 3) {
+		cout<<"Locked\nDeposit to unlock\n";
+		return;
+	}
+	cout<<"present\n";
+	int32_t withdraw_value = args[1]->NumberValue();
+	
+	v8::String::Utf8Value param1(args[2]->ToString());
+	std::string customer_passphrase = std::string(*param1);
+	if(!is_passphrase_valid(customer_passphrase,i)) {
+			customer_list[i].wrong_attempts++;
+			update_customer(customer_list[i]);
+			write_files();
+			load_files();
+			return;
+	}
+	
+	v8::String::Utf8Value param2(args[3]->ToString());
+	std::string operator_password = std::string(*param2);
+	
+	if(!is_operator_password_correct(operator_password))
+		return;	
+	bool is_successful = withdraw_money(i,withdraw_value);
+	if(is_successful) {
+		record_withdrawal(acc_no,withdraw_value);
+	}
+	write_files();
+	load_files();
+}
+
 
 void callMain(const FunctionCallbackInfo<Value>& args) {
 	main();
@@ -1598,6 +1634,7 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "main", callMain);
 	NODE_SET_METHOD(exports, "add_account", add_account);
 	NODE_SET_METHOD(exports, "deposit", deposit);
+	NODE_SET_METHOD(exports, "withdraw", withdraw);
 }
 
 NODE_MODULE(demo1, init)

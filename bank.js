@@ -37,14 +37,26 @@ app.get('/deposit',function(req,resp) {
 });
 
 app.post('/deposit', function(req, res) {
-	console.log("Entered deposit");
 	res.writeHead(200, { 'Content-Type': 'text/html' });
 	res.write("Depositing");
-	console.log("Will be calling it ");
 	addon.deposit(req.body.acc_no,req.body.money);
 	res.end();
 });
 
+app.get('/withdraw',function(req,resp) {
+	fs.readFile("withdraw.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+app.post('/withdraw', function(req, res) {
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	res.write("Withdrawn");
+	addon.withdraw(req.body.acc_no,req.body.money,req.body.customer_passphrase,req.body.operator_password);
+	res.end();
+});
 
 
 app.listen(8080, function() {

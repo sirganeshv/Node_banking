@@ -5,9 +5,7 @@
 fstream file;
 
 bool read_customer(int acc_no) {
-	cout<<"let us read\n";
 	return read_customer_from_db(acc_no);
-	cout<<"finished reading\n";
 }
 
 //Writes new customer's info  
@@ -17,9 +15,7 @@ int write_customer(customer_details customer) {
 
 //Updates a customer
 void update_customer(customer_details customer) {
-	cout<<"moving to db\n";
 	update_customer_in_db(customer);
-	cout<<"returning\n";
 }
 
 //Loads all the customer info into customer_list for display

@@ -146,24 +146,18 @@ void update_customer_in_db(customer_details customer) {
 	sprintf(milli,"%3d",customer.last_accessed_time.tv_usec);
 	char time_string[50];
 	sprintf(time_string,"%02d:%02d:%02d:%s",time.tm_hour,time.tm_min,time.tm_sec,milli);
-	cout<<time_string;
 	string times = string(time_string);
-	/*sprintf(query,"Update customers set phone_no = '%s',address = '%s',balance = %d,passphrase = '%s',wrong_attempts = %d,is_active = '%s',last_accessed_time = '%s' where acc_no = %d",
-		customer.phone_no,customer.address,customer.balance,customer.passphrase,customer.wrong_attempts,customer.is_active?"true":"false",time_string,customer.acc_no);
-	*///cout<<"let us write the customer "<<customer.acc_no<<"\t"<<customer.phone_no<<"\t"<<customer.balance<<"\t"<<customer.passphrase<<"\t"<<customer.wrong_attempts<<"\t"<<customer.is_active<<"\t"<<time_string<<"\n";
 	sprintf(query,"Update customers set phone_no = '%s',address = '%s',balance = %d,passphrase = '%s',wrong_attempts = %d,is_active = '%s' where acc_no = %d",
 		customer.phone_no,customer.address,customer.balance,customer.passphrase,customer.wrong_attempts,customer.is_active?"true":"false",customer.acc_no);
 	
 	if (mysql_query(con,query)){
       finish_with_error(con);
 	}
-	cout<<"let us write time alone\n";
 	sprintf(query,"update customers set last_time = '%s' where acc_no = %d",times,customer.acc_no);
 	if (mysql_query(con,query)){
       finish_with_error(con);
 	}
 	int acc_no = mysql_insert_id(con);
-	cout<<"wrote\n";
 }
 
 //Loads all customer info from DB
