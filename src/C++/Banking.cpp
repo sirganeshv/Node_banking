@@ -619,7 +619,7 @@ bool withdraw_money(int i,int withdraw_value) {
 
 
 //Transfer money to another existing account
-void transfer_money() {
+/*void transfer_money() {
 	char passphrase[10];
 	int withdraw_acc_no = get_acc_no();
 	int k;
@@ -725,7 +725,7 @@ void transfer_money() {
 	}
 	else 
 		cout<<"You do not have sufficient balance";
-}
+}*/
 
 
 //Schedules transfer in future time
@@ -1626,6 +1626,113 @@ void withdraw(const FunctionCallbackInfo<Value>& args) {
 }
 
 
+//Transfer money to another existing account
+void transfer_money(const FunctionCallbackInfo<Value>& args) {
+	int32_t withdraw_acc_no = args[0]->NumberValue();
+	int k;
+	for(k = 0;k < customer_list.size();k++) {
+		if(customer_list[k].acc_no == withdraw_acc_no) {
+			customer_list.push_back(customer_list[k]);
+			customer_list.erase(customer_list.begin() +  k );
+			customer_frequency.push_back(customer_frequency[k]);
+			customer_frequency.erase(customer_frequency.begin() + k);
+			break;
+		}
+	}
+	if(k == customer_list.size())
+		read_customer(withdraw_acc_no);
+	int i = find_customer_position(withdraw_acc_no);
+	if(i == -1) 
+		return;
+	int x = find_customer_info_position(withdraw_acc_no);
+	if(customer_infos[x].no_of_transactions == MAX_NO_OF_TRANSACTIONS) {
+		cout<<"Max number of transactions reached";
+		return;
+	}
+	int amount = args[1]->NumberValue();
+	cout<<amount<<"\n";
+	while(amount <= 0) {
+		cout<<"Enter valid amount\n";
+		cin>>amount;
+	}
+	int acc_no;
+	char phone_no[11];
+	if(customer_list[i].balance - amount > 0) {
+		/*cout<<"Enter mobile number of the receiver\t";
+		cin>>phone_no;
+		while(strlen(phone_no) !=4 || !(is_valid_no(phone_no))) {
+			cout<<"Enter valid number(4 digits)\n";
+			cin>>phone_no;
+		}*/
+		int32_t phone = args[2]->NumberValue();
+		strcpy(phone_no,std::to_string(phone).c_str());
+		vector<customer_details> customers = get_accounts_by_phone_no(phone_no);
+		if(customers.empty()) {
+			cout<<"Phone number doesn't exist";
+			return;
+		}
+		timevall last_accessed_time = customers[0].last_accessed_time;
+		acc_no = customers[0].acc_no;
+		timevall time;
+		for(int l = 0;l < customers.size();l++) {
+			time = customers[l].last_accessed_time;
+			if(((last_accessed_time.tv_sec - time.tv_sec)*1000 + (last_accessed_time.tv_usec - time.tv_usec)/1000.0f) < 0 ) {
+				last_accessed_time = customers[l].last_accessed_time;
+				acc_no = customers[l].acc_no;
+			}
+		}
+		cout<<"The account number is "<<acc_no<<"\n";
+		for(k = 0;k < customer_list.size();k++) {
+			if(customer_list[k].acc_no == acc_no) {
+				customer_list.push_back(customer_list[k]);
+				customer_list.erase(customer_list.begin() +  k );
+				customer_frequency.push_back(customer_frequency[k]);
+				customer_frequency.erase(customer_frequency.begin() + k);
+				break;
+			}
+		}
+		if(k == customer_list.size())
+			read_customer(acc_no);
+		int i = find_customer_position(withdraw_acc_no);
+		int j = find_customer_position(acc_no);
+		if(j == -1) {
+			return;
+		}
+		if(customer_list[i].wrong_attempts >= 3) {
+			cout<<"Locked\nDeposit to unlock\n";
+			return;
+		}
+		if(i == j || !strcmp(customer_list[i].phone_no,customer_list[j].phone_no)) {
+			cout<<"You cannot transfer your money to yourself\n";
+			return;
+		}
+		if(!withdraw_money(i,amount))
+			return;
+		gettimeofday(&customer_list[i].last_accessed_time);
+		customer_frequency[i]++;
+		deposit_money(j,amount);
+		struct transaction deposit_transaction;
+		deposit_transaction.timestamp = get_timestamp();
+		deposit_transaction.acc_no = acc_no;
+		strcpy(deposit_transaction.deposit,(to_string(amount)).c_str());
+		deposit_transaction.balance = customer_list[j].balance;
+		transactions.push_back(deposit_transaction);
+		struct transaction withdraw_transaction;
+		withdraw_transaction.timestamp = get_timestamp();
+		withdraw_transaction.acc_no = withdraw_acc_no;
+		strcpy(withdraw_transaction.withdraw,(to_string(amount)).c_str());
+		withdraw_transaction.balance = customer_list[i].balance;
+		transactions.push_back(withdraw_transaction);
+		write_files();
+		update_customer(customer_list[i]);
+		update_customer(customer_list[j]);
+		load_files();
+	}
+	else 
+		cout<<"You do not have sufficient balance";
+}
+
+
 void callMain(const FunctionCallbackInfo<Value>& args) {
 	main();
 }	
@@ -1635,6 +1742,7 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "add_account", add_account);
 	NODE_SET_METHOD(exports, "deposit", deposit);
 	NODE_SET_METHOD(exports, "withdraw", withdraw);
+	NODE_SET_METHOD(exports, "transfer_money", transfer_money);
 }
 
 NODE_MODULE(demo1, init)

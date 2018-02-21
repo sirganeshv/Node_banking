@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Bank/Withdraw</title>
+</head>
+<body>
+<div>
+	<form action="http://127.0.0.1:8080/transfer" method="post">
+		<fieldset>
+			<label for="acc_no">Your Account Number:</label>
+			<input type="number" id="withdraw_acc_no" name="withdraw_acc_no" placeholder="Enter your Account number" />
+			<br/><br/>
+			<label for="money">Money:</label>
+			<input type="number" id="money" name="money" placeholder="Withdraw amount" />
+			<br/><br/>
+			<label for="acc_no">Reciever's mobile Number:</label>
+			<input type="number" id="phone_no" name="phone_no" placeholder="Enter reciever's mobile number" />
+			<br/><br/>
+			<input type="submit" value="Transfer" />
+		</fieldset>
+	</form>
+</div>
+</body>
+</html>

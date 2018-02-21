@@ -38,7 +38,7 @@ app.get('/deposit',function(req,resp) {
 
 app.post('/deposit', function(req, res) {
 	res.writeHead(200, { 'Content-Type': 'text/html' });
-	res.write("Depositing");
+	res.write("Deposited");
 	addon.deposit(req.body.acc_no,req.body.money);
 	res.end();
 });
@@ -58,6 +58,20 @@ app.post('/withdraw', function(req, res) {
 	res.end();
 });
 
+app.get('/transfer',function(req,resp) {
+	fs.readFile("transfer.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+app.post('/transfer', function(req, res) {
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	res.write("Transfered");
+	addon.transfer_money(req.body.withdraw_acc_no,req.body.money,req.body.phone_no);
+	res.end();
+});
 
 app.listen(8080, function() {
 	addon.main();
