@@ -396,78 +396,6 @@ void operator_login() {
 }
 
 
-//Display a specific customer
-void display_customer(int i) {
-	time_t nowtime;
-	tm time;
-	char milli[10];
-	if (is_customer_under_current_operator(i) || current_operator->is_admin) {
-		cout<<customer_list[i].customer_name<<"\t\t";
-		cout<<customer_list[i].acc_no<<"\t\t";
-		cout<<customer_list[i].age<<"\t\t";
-		cout<<customer_list[i].phone_no<<"\t\t";
-		cout<<customer_list[i].address<<"\t\t";
-		cout<<customer_list[i].balance<<"\t\t";
-		nowtime = (time_t)customer_list[i].last_accessed_time.tv_sec;
-		time = *localtime(&nowtime);
-		sprintf(milli,"%03d",customer_list[i].last_accessed_time.tv_usec/1000);
-		printf("%02d : %02d : %02d : %3s",time.tm_hour,time.tm_min,time.tm_sec,milli);
-		//cout<<time.tm_hour<<" : "<<time.tm_min<<" : "<<time.tm_sec<<" : "<<milli;
-		cout<<"\n";
-	}
-}
-
-
-//Display customer list 
-void display_customer_list() {
-	bool disp_first = false;
-	if(current_operator->is_admin) {
-		load_customers();
-		//cout<<"Current customers  "<<current_operator->no_of_customers<<"\n";
-		for (unsigned i=0; i<customer_list.size(); ++i) {
-			if(!disp_first) {
-				if(customer_list.size() > 0) {
-					cout<<"Details of customers  "<<customer_list.size()<<"\n";
-					cout<<"\nName\t\tAcc No\t\tAge\t\tPhone\t\tAddress\t\tBalance\t\tLast accessed time\n\n";
-					disp_first = true;
-				}
-				else {
-					cout<<"No customers yet";
-					return;
-				}
-			}
-			if (is_customer_under_current_operator(i) || current_operator->is_admin)
-				display_customer(i);
-		}
-	}
-	else {
-		for(int i = 0;i<current_operator->no_of_customers;i++) {
-			int k;
-			for(k = 0;k < customer_list.size();k++) {
-				if(customer_list[k].acc_no == current_operator->customer_acc_no_list[i]) {
-					customer_list.push_back(customer_list[k]);
-					customer_list.erase(customer_list.begin() +  k );
-					customer_frequency.push_back(customer_frequency[k]);
-					customer_frequency.erase(customer_frequency.begin() + k);
-					break;
-				}
-			}
-			if(k == customer_list.size())
-				read_customer(current_operator->customer_acc_no_list[i]);
-			int j= find_customer_position(current_operator->customer_acc_no_list[i]);
-			if(!disp_first) {
-				cout<<"\nName\t\tAcc No\t\tAge\t\tPhone\t\tAddress\t\tBalance\t\tLast accessed time\n\n";
-				disp_first = true;
-			}
-			display_customer(j);
-		}
-		if(!disp_first)
-			cout<<"No customers yet";
-	}
-	customer_list.clear();
-}
-
-
 //Deposit money into user account
 bool deposit_money(int i,int deposit_value) {
 	customer_list[i].balance += deposit_value;
@@ -1068,6 +996,7 @@ using v8::Object;
 using v8::String;
 using v8::Number;
 using v8::Value;
+using v8::Array;
 
 //Adds account for new customer and assigns account number
 void add_account(const FunctionCallbackInfo<Value>& args){
@@ -1239,6 +1168,70 @@ void display_customer(const FunctionCallbackInfo<Value>& args) {
 		Number::New(isolate, customer_list[i].balance));
 	args.GetReturnValue().Set(obj);
 }
+
+
+void display_all(const FunctionCallbackInfo<Value>& args) {
+	Isolate* isolate = args.GetIsolate();
+	Local<Array> result_list = Array::New(isolate);
+	if(current_operator->is_admin) {
+		load_customers();
+		for (unsigned i=0; i<customer_list.size(); ++i) {
+			if (is_customer_under_current_operator(i) || current_operator->is_admin) {
+				Local<Object> obj = Object::New(isolate);
+				obj->Set(String::NewFromUtf8(isolate, "name"), 
+					String::NewFromUtf8(isolate, customer_list[i].customer_name));
+				obj->Set(String::NewFromUtf8(isolate, "acc_no"), 
+					Number::New(isolate, customer_list[i].acc_no));
+				obj->Set(String::NewFromUtf8(isolate, "age"), 
+					Number::New(isolate, customer_list[i].age));
+				obj->Set(String::NewFromUtf8(isolate, "phone_no"), 
+					String::NewFromUtf8(isolate, customer_list[i].phone_no));
+				obj->Set(String::NewFromUtf8(isolate, "address"), 
+					String::NewFromUtf8(isolate, customer_list[i].address));
+				obj->Set(String::NewFromUtf8(isolate, "balance"), 
+					Number::New(isolate, customer_list[i].balance));
+				result_list->Set(i,obj);
+			}
+		}
+	}
+	else {
+		for(int i = 0;i<current_operator->no_of_customers;i++) {
+			int k;
+			int l = 0;
+			for(k = 0;k < customer_list.size();k++) {
+				if(customer_list[k].acc_no == current_operator->customer_acc_no_list[i]) {
+					customer_list.push_back(customer_list[k]);
+					customer_list.erase(customer_list.begin() +  k );
+					customer_frequency.push_back(customer_frequency[k]);
+					customer_frequency.erase(customer_frequency.begin() + k);
+					break;
+				}
+			}
+			if(k == customer_list.size())
+				read_customer(current_operator->customer_acc_no_list[i]);
+			int j= find_customer_position(current_operator->customer_acc_no_list[i]);
+			Local<Object> obj = Object::New(isolate);
+				obj->Set(String::NewFromUtf8(isolate, "name"), 
+					String::NewFromUtf8(isolate, customer_list[j].customer_name));
+				obj->Set(String::NewFromUtf8(isolate, "acc_no"), 
+					Number::New(isolate, customer_list[j].acc_no));
+				obj->Set(String::NewFromUtf8(isolate, "age"), 
+					Number::New(isolate, customer_list[j].age));
+				obj->Set(String::NewFromUtf8(isolate, "phone_no"), 
+					String::NewFromUtf8(isolate, customer_list[j].phone_no));
+				obj->Set(String::NewFromUtf8(isolate, "address"), 
+					String::NewFromUtf8(isolate, customer_list[j].address));
+				obj->Set(String::NewFromUtf8(isolate, "balance"), 
+					Number::New(isolate, customer_list[j].balance));
+				result_list->Set(l,obj);
+			l++;
+		}
+	}
+	customer_list.clear();
+	args.GetReturnValue().Set(result_list);
+
+}
+
 
 void deposit(const FunctionCallbackInfo<Value>& args) {
 	cout<<"inside deposit\n";
@@ -1826,6 +1819,7 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "update_account", update_account);
 	NODE_SET_METHOD(exports, "delete_account", delete_account);
 	NODE_SET_METHOD(exports, "display", display_customer);
+	NODE_SET_METHOD(exports, "display_all", display_all);
 	NODE_SET_METHOD(exports, "deposit", deposit);
 	NODE_SET_METHOD(exports, "withdraw", withdraw);
 	NODE_SET_METHOD(exports, "transfer_money", transfer_money);

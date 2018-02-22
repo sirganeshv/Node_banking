@@ -39,7 +39,6 @@ app.get('/update_customer',function(req,resp) {
 app.post('/update_customer', function(req, res) {
 	res.writeHead(200, { 'Content-Type': 'text/html' });
 	res.write("Going to update");
-	//res.write(req.body.acc_no + " " + req.body.details + " " + req.body.phone + " " + req.body.address);
 	addon.update_account(req.body.acc_no,req.body.details,req.body.phone,req.body.address);
 	console.log("inserted");
 	res.end();
@@ -58,7 +57,6 @@ app.get('/delete_account',function(req,resp) {
 app.post('/delete_account', function(req, res) {
 	res.writeHead(200, { 'Content-Type': 'text/html' });
 	res.write("Deleted");
-	//res.write(req.body.acc_no + " " + req.body.details + " " + req.body.phone + " " + req.body.address);
 	addon.delete_account(req.body.acc_no,req.body.operator_password);
 	console.log("Deleted");
 	res.end();
@@ -75,13 +73,23 @@ app.get('/display',function(req,resp) {
 });
 
 app.post('/display', function(req, res) {
-	//res.writeHead(200, { 'Content-Type': 'text/html' });
-	//res.write("Displaying");
-	//res.write(req.body.acc_no + " " + req.body.details + " " + req.body.phone + " " + req.body.address);
 	var data =  addon.display(req.body.acc_no);
 	console.log("name = " + data.name);
 	res.send(data);
-	//res.end();
+});
+
+
+app.get('/display_all',function(req,resp) {
+	fs.readFile("display_all.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+app.post('/display_all', function(req, res) {
+	var data =  addon.display_all();
+	res.send(data);
 });
 
 

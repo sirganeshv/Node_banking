@@ -24,24 +24,28 @@ table, td {
 			type: 'POST',
 			data: JSON.stringify(dataa),
 			contentType: 'application/json',
-			url: '/display',						
+			url: '/display_all',						
 			success: function(data) {
 				$('#employee').css("display","initial");
 				var table = document.getElementById("emptable");
-				table.deleteRow(1);
-				var row = table.insertRow(1);
-				var cell1 = row.insertCell(0);
-				cell1.innerHTML = data.name;
-				var cell2 = row.insertCell(1);
-				cell2.innerHTML = data.acc_no;
-				var cell3 = row.insertCell(2);
-				cell3.innerHTML = data.age;
-				var cell4 = row.insertCell(3);
-				cell4.innerHTML = data.phone_no;
-				var cell5 = row.insertCell(4);
-				cell5.innerHTML = data.address;
-				var cell6 = row.insertCell(5);
-				cell6.innerHTML = data.balance;
+				for(i = 0; i < data.length;i++) {
+					//alert(i);
+					var row = table.insertRow(i+1);
+					var cell1 = row.insertCell(0);
+					cell1.innerHTML = data[i].name;
+					var cell2 = row.insertCell(1);
+					cell2.innerHTML = data[i].acc_no;
+					var cell3 = row.insertCell(2);
+					cell3.innerHTML = data[i].age;
+					var cell4 = row.insertCell(3);
+					cell4.innerHTML = data[i].phone_no;
+					var cell5 = row.insertCell(4);
+					cell5.innerHTML = data[i].address;
+					var cell6 = row.insertCell(5);
+					cell6.innerHTML = data[i].balance;
+				}
+				/*
+				*/
 			},
 			error : function(xhr, status) {
 				console.log(xhr);
@@ -62,9 +66,6 @@ table, td {
 <div>
 	<form>
 		<fieldset>
-			<label for="acc_no">Account Number:</label>
-			<input type="number" id="acc_no" name="acc_no" placeholder="Enter your Account number" />
-			<br/><br/>
 			<input type="button" value="Display" id="submit" />
 		</fieldset>
 		<div id="employee">
