@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Bank/Update Customer</title>
+<script src="http://code.jquery.com/jquery-1.6.2.min.js"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('#phone').hide();
+		$('#address').hide();
+		$('#phoneLabel').hide();
+		$('#addressLabel').hide();
+	});
+	$(function(){
+		$('input[type=radio][name=details]').change(function() {
+			if (this.value == 'phone') {
+				alert(this.name + " "+this.value);
+				$('#phone').css("display","initial");
+				$('#phoneLabel').css("display","initial");
+				$('#address').hide();
+				$('#addressLabel').hide();
+			}
+			if (this.value == 'address') {
+				$('#address').css("display","initial");
+				$('#addressLabel').css("display","initial");
+				$('#phone').hide();
+				$('#phoneLabel').hide();
+			}
+		});
+	});
+</script>
+</head>
+<body>
+<div>
+	<form action="http://127.0.0.1:8080/update_customer" method="post">
+		<fieldset>
+		<label for="acc_no"">Your Account Number:</label><br/>
+		<input type="number" id="acc_no" name="acc_no" placeholder="Enter your age" />
+		<br/><br/>
+		<input type="radio" name="details" id="details" value="phone"> Phone<br>
+		<input type="radio" name="details" id="details" value="address"> Address<br>
+		<label for="phone" id="phoneLabel">Phone_no:</label>
+		<input type="number" id="phone" name="phone" placeholder="Enter your phone_no" />	
+		<label for="address" id="addressLabel">Address:</label>
+		<textarea id="address" name="address" placeholder="What's your address?"></textarea>
+		<br/><br/>
+		<input type="submit" value="Update" />
+		</fieldset>
+	</form>
+</div>
+</body>
+</html>

@@ -1208,6 +1208,47 @@ void add_account(const FunctionCallbackInfo<Value>& args){
 	load_files();
 }
 
+
+void update_account(const FunctionCallbackInfo<Value>& args){
+	Isolate* isolate = args.GetIsolate();
+	int acc_no = args[0]->NumberValue();
+	int j;
+	for(j = 0;j < customer_list.size();j++) {
+		if(customer_list[j].acc_no == acc_no) {
+			customer_list.push_back(customer_list[j]);
+			customer_list.erase(customer_list.begin() +  j );
+			customer_frequency.push_back(customer_frequency[j]);
+			customer_frequency.erase(customer_frequency.begin() + j);
+			break;
+		}
+	}
+	if(j == customer_list.size())
+		read_customer(acc_no);
+	int i = find_customer_position(acc_no);
+	if(i == -1)
+		return;
+	v8::String::Utf8Value param1(args[1]->ToString());
+	std::string option = std::string(*param1);
+	if(!strcmp("phone",option.c_str())) {
+		int32_t phone_no = args[2]->NumberValue();
+		strcpy(customer_list[i].phone_no,std::to_string(phone_no).c_str());
+	}
+	else {
+		v8::String::Utf8Value param2(args[3]->ToString());
+		std::string address = std::string(*param2);
+		strcpy(customer_list[i].address,address.c_str());
+	}
+	gettimeofday(&customer_list[i].last_accessed_time);
+	//customer_list[i].frequency++;
+	customer_frequency[i]++;
+	srand(1);
+	write_files();
+	update_customer(customer_list[i]);
+	srand(1);
+	load_files();
+}
+
+
 void deposit(const FunctionCallbackInfo<Value>& args) {
 	cout<<"inside deposit\n";
 	int32_t acc_no = args[0]->NumberValue();
@@ -1791,6 +1832,7 @@ void callMain(const FunctionCallbackInfo<Value>& args) {
 void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "main", callMain);
 	NODE_SET_METHOD(exports, "add_account", add_account);
+	NODE_SET_METHOD(exports, "update_account", update_account);
 	NODE_SET_METHOD(exports, "deposit", deposit);
 	NODE_SET_METHOD(exports, "withdraw", withdraw);
 	NODE_SET_METHOD(exports, "transfer_money", transfer_money);

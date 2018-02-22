@@ -29,6 +29,24 @@ app.post('/add_customer', function(req, res) {
 	res.end();
 });
 
+app.get('/update_customer',function(req,resp) {
+	fs.readFile("update_details.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write("test");
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+app.post('/update_customer', function(req, res) {
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	res.write("Going to update");
+	res.write(req.body.acc_no + " " + req.body.details + " " + req.body.phone + " " + req.body.address);
+	addon.update_account(req.body.acc_no,req.body.details,req.body.phone,req.body.address);
+	console.log("inserted");
+	res.end();
+});
+
 app.get('/deposit',function(req,resp) {
 	fs.readFile("deposit.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
