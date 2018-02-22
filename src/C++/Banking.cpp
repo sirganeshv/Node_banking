@@ -396,54 +396,6 @@ void operator_login() {
 }
 
 
-
-
-//Delete account of a user based on account number
-void delete_account() {
-	//int curr_customer;
-	int acc_no = get_acc_no();
-	int operator_id = find_operator(acc_no);
-	int k;
-	for(k = 0;k < customer_list.size();k++) {
-		if(customer_list[k].acc_no == acc_no) {
-			customer_list.push_back(customer_list[k]);
-			customer_list.erase(customer_list.begin() +  k );
-			customer_frequency.push_back(customer_frequency[k]);
-			customer_frequency.erase(customer_frequency.begin() + k);
-			break;
-		}
-	}
-	if(k == customer_list.size())
-		read_customer(acc_no);
-	int i = find_customer_position(acc_no);
-	if(i == -1) 
-		return;
-	if(!is_customer_under_current_operator(i) && !current_operator->is_admin ) {
-		cout<<"The customer is under a different operator";
-		return;
-	}
-	customer_details customer = customer_list[i];
-	customer.is_active = false;
-	customer_list.erase(customer_list.begin()+i);	
-	cout<<"Account deleted successfully";
-	int operator_position = find_operator_position(operator_id);
-	bank_operator* op = & operators[operator_position];
-	int j;
-	for(j = 0;j < op->no_of_customers;j++) {
-		if(op->customer_acc_no_list[j] == acc_no) {
-			break;
-		}
-	}
-	std::copy((op->customer_acc_no_list).begin() + j + 1,(op->customer_acc_no_list).begin() + 51,(op->customer_acc_no_list).begin() + j);
-	op->no_of_customers--;
-	update_customer(customer);
-	srand(1);
-	write_files();
-	srand(1);
-	load_files();
-}
-
-
 //Display a specific customer
 void display_customer(int i) {
 	time_t nowtime;
@@ -573,6 +525,23 @@ bool withdraw_money(int i,int withdraw_value) {
 	return true;
 }
 
+//Gives the option to reset password based on security question
+bool forgot_password(int i) {
+	cout<<customer_list[i].security_question<<"\n";
+	string answer;
+	cin.ignore();
+	getline(cin,answer);
+	if(!strcmp(answer.c_str(),customer_list[i].security_answer)) {
+		strcpy(customer_list[i].passphrase,get_passphrase().c_str());
+	}
+	else {
+		cout<<"Please try again\n";
+		return false;
+	}
+	customer_list[i].wrong_attempts = 0;
+	update_customer(customer_list[i]);
+	return true;
+}
 
 //Transfer money to another existing account
 /*void transfer_money() {
@@ -1183,6 +1152,56 @@ void update_account(const FunctionCallbackInfo<Value>& args){
 }
 
 
+//Delete account of a user based on account number
+void delete_account(const FunctionCallbackInfo<Value>& args) {
+	//int curr_customer;
+	int acc_no = args[0]->NumberValue();
+	int operator_id = find_operator(acc_no);
+	int k;
+	for(k = 0;k < customer_list.size();k++) {
+		if(customer_list[k].acc_no == acc_no) {
+			customer_list.push_back(customer_list[k]);
+			customer_list.erase(customer_list.begin() +  k );
+			customer_frequency.push_back(customer_frequency[k]);
+			customer_frequency.erase(customer_frequency.begin() + k);
+			break;
+		}
+	}
+	if(k == customer_list.size())
+		read_customer(acc_no);
+	int i = find_customer_position(acc_no);
+	if(i == -1) 
+		return;
+	if(!is_customer_under_current_operator(i) && !current_operator->is_admin ) {
+		cout<<"The customer is under a different operator";
+		return;
+	}
+	v8::String::Utf8Value param1(args[1]->ToString());
+	std::string operator_password = std::string(*param1);
+	if(!is_operator_password_correct(operator_password))
+		return;	
+	customer_details customer = customer_list[i];
+	customer.is_active = false;
+	customer_list.erase(customer_list.begin()+i);	
+	cout<<"Account deleted successfully";
+	int operator_position = find_operator_position(operator_id);
+	bank_operator* op = & operators[operator_position];
+	int j;
+	for(j = 0;j < op->no_of_customers;j++) {
+		if(op->customer_acc_no_list[j] == acc_no) {
+			break;
+		}
+	}
+	std::copy((op->customer_acc_no_list).begin() + j + 1,(op->customer_acc_no_list).begin() + 51,(op->customer_acc_no_list).begin() + j);
+	op->no_of_customers--;
+	update_customer(customer);
+	srand(1);
+	write_files();
+	srand(1);
+	load_files();
+}
+
+
 void deposit(const FunctionCallbackInfo<Value>& args) {
 	cout<<"inside deposit\n";
 	int32_t acc_no = args[0]->NumberValue();
@@ -1767,6 +1786,7 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "main", callMain);
 	NODE_SET_METHOD(exports, "add_account", add_account);
 	NODE_SET_METHOD(exports, "update_account", update_account);
+	NODE_SET_METHOD(exports, "delete_account", delete_account);
 	NODE_SET_METHOD(exports, "deposit", deposit);
 	NODE_SET_METHOD(exports, "withdraw", withdraw);
 	NODE_SET_METHOD(exports, "transfer_money", transfer_money);

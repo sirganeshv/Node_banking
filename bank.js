@@ -41,11 +41,32 @@ app.get('/update_customer',function(req,resp) {
 app.post('/update_customer', function(req, res) {
 	res.writeHead(200, { 'Content-Type': 'text/html' });
 	res.write("Going to update");
-	res.write(req.body.acc_no + " " + req.body.details + " " + req.body.phone + " " + req.body.address);
+	//res.write(req.body.acc_no + " " + req.body.details + " " + req.body.phone + " " + req.body.address);
 	addon.update_account(req.body.acc_no,req.body.details,req.body.phone,req.body.address);
 	console.log("inserted");
 	res.end();
 });
+
+
+app.get('/delete_account',function(req,resp) {
+	fs.readFile("delete_account.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write("test");
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+
+app.post('/delete_account', function(req, res) {
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	res.write("Deleted");
+	//res.write(req.body.acc_no + " " + req.body.details + " " + req.body.phone + " " + req.body.address);
+	addon.delete_account(req.body.acc_no,req.body.operator_password);
+	console.log("Deleted");
+	res.end();
+});
+
 
 app.get('/deposit',function(req,resp) {
 	fs.readFile("deposit.html", function (error, pgResp) {
