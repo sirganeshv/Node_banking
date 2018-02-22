@@ -396,52 +396,6 @@ void operator_login() {
 }
 
 
-//Update account details (phone_no and address for existing customer)
-void update_account(){
-	int acc_no = get_acc_no();
-	int j;
-	for(j = 0;j < customer_list.size();j++) {
-		if(customer_list[j].acc_no == acc_no) {
-			customer_list.push_back(customer_list[j]);
-			customer_list.erase(customer_list.begin() +  j );
-			customer_frequency.push_back(customer_frequency[j]);
-			customer_frequency.erase(customer_frequency.begin() + j);
-			break;
-		}
-	}
-	if(j == customer_list.size())
-		read_customer(acc_no);
-	int i = find_customer_position(acc_no);
-	if(i == -1)
-		return;
-	cout<<"Enter which field to update  1.Phone Number  2.Address\n";
-	int option;
-	cin>>option;
-	switch(option) {
-		case 1:
-				cout<<"Enter the new Phone number\n";
-				cin>>customer_list[i].phone_no;
-				while(strlen(customer_list[i].phone_no) !=4 || !(is_valid_no(customer_list[i].phone_no))) {
-					cout<<"Enter valid number(4 digits)\n";
-					cin>>customer_list[i].phone_no;
-				}
-				cout<<"Phone number updated successfully";
-		break;
-		case 2:
-				cout<<"Enter the new address\n";
-				cin>>customer_list[i].address;
-				cout<<"Address updated successfully";
-		break;
-	}
-	gettimeofday(&customer_list[i].last_accessed_time);
-	//customer_list[i].frequency++;
-	customer_frequency[i]++;
-	srand(1);
-	write_files();
-	update_customer(customer_list[i]);
-	srand(1);
-	load_files();
-}
 
 
 //Delete account of a user based on account number
@@ -946,26 +900,6 @@ void clear_fd() {
 	load_files();
 }
 
-//Gives the option to reset password based on security question
-bool forgot_password(int i) {
-	cout<<customer_list[i].security_question<<"\n";
-	string answer;
-	cin.ignore();
-	getline(cin,answer);
-	if(!strcmp(answer.c_str(),customer_list[i].security_answer)) {
-		strcpy(customer_list[i].passphrase,get_passphrase().c_str());
-	}
-	else {
-		cout<<"Please try again\n";
-		return false;
-	}
-	customer_list[i].wrong_attempts = 0;
-	update_customer(customer_list[i]);
-	return true;
-}
-
-
-
 int main() {
 		init_db();
 		initialize();
@@ -1208,7 +1142,7 @@ void add_account(const FunctionCallbackInfo<Value>& args){
 	load_files();
 }
 
-
+//Update account details (phone_no and address for existing customer)
 void update_account(const FunctionCallbackInfo<Value>& args){
 	Isolate* isolate = args.GetIsolate();
 	int acc_no = args[0]->NumberValue();
