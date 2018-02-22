@@ -1739,7 +1739,50 @@ void fixed_deposit(const FunctionCallbackInfo<Value>& args) {
 	load_files();
 }
 
+void get_security_question(const FunctionCallbackInfo<Value>& args) {
+	int acc_no = args[0]->NumberValue();
+	int j;
+	for(j = 0;j < customer_list.size();j++) {
+		if(customer_list[j].acc_no == acc_no) {
+			customer_list.push_back(customer_list[j]);
+			customer_list.erase(customer_list.begin()+j);
+			customer_frequency.push_back(customer_frequency[j]);
+			customer_frequency.erase(customer_frequency.begin() + j);
+			break;
+		}
+	}
+	if(j == customer_list.size())
+		read_customer(acc_no);
+		int i = find_customer_position(acc_no);
+		if(i == -1)
+			return;
+	Isolate* isolate = args.GetIsolate();
+	args.GetReturnValue().Set(String::NewFromUtf8(isolate, customer_list[i].security_question));
+}
 
+void forgot_password(const FunctionCallbackInfo<Value>& args) {
+	int acc_no = args[0]->NumberValue();
+	v8::String::Utf8Value param2(args[1]->ToString());
+	std::string answer = std::string(*param2);
+	int i = find_customer_position(acc_no);
+	Isolate* isolate = args.GetIsolate();
+	if(!strcmp(answer.c_str(),customer_list[i].security_answer)) 
+		args.GetReturnValue().Set(String::NewFromUtf8(isolate, "true"));
+	else
+		args.GetReturnValue().Set(String::NewFromUtf8(isolate, "false"));	
+}
+
+void change_password(const FunctionCallbackInfo<Value>& args) {
+	int acc_no = args[0]->NumberValue();
+	int i = find_customer_position(acc_no);
+	v8::String::Utf8Value param1(args[1]->ToString());
+	std::string passphrase = std::string(*param1);
+	strcpy(customer_list[i].passphrase,passphrase.c_str());
+	customer_list[i].wrong_attempts = 0;
+	update_customer(customer_list[i]);
+	cout<<customer_list[i].passphrase;
+	//args.GetReturnValue().Set(String::NewFromUtf8(isolate, "true"));
+}
 
 void callMain(const FunctionCallbackInfo<Value>& args) {
 	main();
@@ -1754,6 +1797,9 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "schedule_transfer", schedule_transfer);
 	NODE_SET_METHOD(exports, "standing_instructions", add_standing_transactions);
 	NODE_SET_METHOD(exports, "fixed_deposit", fixed_deposit);
+	NODE_SET_METHOD(exports, "get_security_question", get_security_question);
+	NODE_SET_METHOD(exports, "forgot_password", forgot_password);
+	NODE_SET_METHOD(exports, "change_password", change_password);
 }
 
 NODE_MODULE(demo1, init)

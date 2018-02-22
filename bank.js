@@ -7,6 +7,7 @@ var app     = express();
 //Note that in version 4 of express, express.bodyParser() was
 //deprecated in favor of a separate 'body-parser' module.
 app.use(bodyParser.urlencoded({ extended: true })); 
+app.use(bodyParser.json());
 
 var http = require("http");
 
@@ -122,6 +123,39 @@ app.post('/fixed_deposit', function(req, res) {
 	addon.fixed_deposit(req.body.acc_no,req.body.money,req.body.duration);
 	res.end();
 });
+
+app.get('/forgot_password',function(req,resp) {
+	fs.readFile("forgot_password.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+app.post('/forgot_password', function(req, res){
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	var jsonstr = JSON.stringify(req.body.acc_no);
+	var acc_no = jsonstr.slice(1, jsonstr.length-1);
+	res.write(addon.get_security_question(acc_no).toString());
+	res.end();
+});
+
+app.post('/security', function(req, res,next){
+	//console.log(addon.forgot_password(req.body.acc_no,req.body.answer).toString());
+	res.write(addon.forgot_password(req.body.acc_no,req.body.answer).toString());
+	res.end();
+});
+
+
+app.post('/change_password',function(req,resp) {
+	resp.writeHead(200, { 'Content-Type': 'text/html' });
+	addon.change_password(req.body.acc_no,req.body.passphrase);
+	resp.write("Changine passphrase");
+	//resp.write(pgResp);
+	//resp.write(req.body.acc_no.toString());
+	resp.end();
+});
+
 
 app.listen(8080, function() {
 	addon.main();
