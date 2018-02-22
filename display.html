@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Bank/display</title>
+<style>
+table, td {
+    border: 1px solid black;
+}
+</style>
+<script src="http://code.jquery.com/jquery-1.6.2.min.js"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('#employee').hide();
+	});
+	
+	$(function(){
+		$('#submit').click(function(e){
+		var dataa = {
+			"acc_no" : $('#acc_no').val()
+		};
+		//alert(dataa.acc_no);
+		$.ajax({
+			type: 'POST',
+			data: JSON.stringify(dataa),
+			contentType: 'application/json',
+			url: '/display',						
+			success: function(data) {
+				$('#employee').css("display","initial");
+				var table = document.getElementById("emptable");
+				table.deleteRow(1);
+				var row = table.insertRow(1);
+				var cell1 = row.insertCell(0);
+				cell1.innerHTML = data.name;
+				var cell2 = row.insertCell(1);
+				cell2.innerHTML = data.acc_no;
+				var cell3 = row.insertCell(2);
+				cell3.innerHTML = data.age;
+				var cell4 = row.insertCell(3);
+				cell4.innerHTML = data.phone_no;
+				var cell5 = row.insertCell(4);
+				cell5.innerHTML = data.address;
+				var cell6 = row.insertCell(5);
+				cell6.innerHTML = data.balance;
+			},
+			error : function(xhr, status) {
+				console.log(xhr);
+				console.log(status);
+			},
+			complete : function(xhr, status) {
+				console.log(xhr);
+				console.log(status);
+			}
+			});
+		});				
+	});
+</script>
+
+
+</head>
+<body>
+<div>
+	<form action="http://127.0.0.1:8080/display" method="post">
+		<fieldset>
+			<label for="acc_no">Account Number:</label>
+			<input type="number" id="acc_no" name="acc_no" placeholder="Enter your Account number" />
+			<br/><br/>
+			<input type="button" value="Display" id="submit" />
+		</fieldset>
+		<div id="employee">
+			<table id="emptable">
+				<thead>
+					<th>Customer Name</th>
+					<th>Account Number</th>
+					<th>Age</th>
+					<th>Phone No</th>
+					<th>Address</th>
+					<th>Balance</th>
+				</thead>
+				<tbody>
+					<tr></tr>
+				</tbody>
+			</table>
+		</div>
+	</form>
+</div>
+</body>
+</html>

@@ -1202,6 +1202,44 @@ void delete_account(const FunctionCallbackInfo<Value>& args) {
 }
 
 
+//Display a specific customer
+void display_customer(const FunctionCallbackInfo<Value>& args) {
+	time_t nowtime;
+	tm time;
+	char milli[10];
+	int acc_no = args[0]->NumberValue();
+	int k;
+	for(k = 0;k < customer_list.size();k++) {
+		if(customer_list[k].acc_no == acc_no) {
+			customer_list.push_back(customer_list[k]);
+			customer_list.erase(customer_list.begin() +  k );
+			customer_frequency.push_back(customer_frequency[k]);
+			customer_frequency.erase(customer_frequency.begin() + k);
+			break;
+		}
+	}
+	if(k == customer_list.size())
+		read_customer(acc_no);
+	int i = find_customer_position(acc_no);
+	if(i == -1) 
+		return;
+	Isolate* isolate = args.GetIsolate();
+	Local<Object> obj = Object::New(isolate);
+	obj->Set(String::NewFromUtf8(isolate, "name"), 
+		String::NewFromUtf8(isolate, customer_list[i].customer_name));
+	obj->Set(String::NewFromUtf8(isolate, "acc_no"), 
+		Number::New(isolate, customer_list[i].acc_no));
+	obj->Set(String::NewFromUtf8(isolate, "age"), 
+		Number::New(isolate, customer_list[i].age));
+	obj->Set(String::NewFromUtf8(isolate, "phone_no"), 
+		String::NewFromUtf8(isolate, customer_list[i].phone_no));
+	obj->Set(String::NewFromUtf8(isolate, "address"), 
+		String::NewFromUtf8(isolate, customer_list[i].address));
+	obj->Set(String::NewFromUtf8(isolate, "balance"), 
+		Number::New(isolate, customer_list[i].balance));
+	args.GetReturnValue().Set(obj);
+}
+
 void deposit(const FunctionCallbackInfo<Value>& args) {
 	cout<<"inside deposit\n";
 	int32_t acc_no = args[0]->NumberValue();
@@ -1787,6 +1825,7 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "add_account", add_account);
 	NODE_SET_METHOD(exports, "update_account", update_account);
 	NODE_SET_METHOD(exports, "delete_account", delete_account);
+	NODE_SET_METHOD(exports, "display", display_customer);
 	NODE_SET_METHOD(exports, "deposit", deposit);
 	NODE_SET_METHOD(exports, "withdraw", withdraw);
 	NODE_SET_METHOD(exports, "transfer_money", transfer_money);

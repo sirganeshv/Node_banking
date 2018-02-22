@@ -14,7 +14,6 @@ var http = require("http");
 app.get('/',function(req,resp) {
 	fs.readFile("addAccount.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
-			resp.write("test");
 			resp.write(pgResp);
 			resp.end();
 	});
@@ -32,7 +31,6 @@ app.post('/add_customer', function(req, res) {
 app.get('/update_customer',function(req,resp) {
 	fs.readFile("update_details.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
-			resp.write("test");
 			resp.write(pgResp);
 			resp.end();
 	});
@@ -51,7 +49,6 @@ app.post('/update_customer', function(req, res) {
 app.get('/delete_account',function(req,resp) {
 	fs.readFile("delete_account.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
-			resp.write("test");
 			resp.write(pgResp);
 			resp.end();
 	});
@@ -65,6 +62,26 @@ app.post('/delete_account', function(req, res) {
 	addon.delete_account(req.body.acc_no,req.body.operator_password);
 	console.log("Deleted");
 	res.end();
+});
+
+
+
+app.get('/display',function(req,resp) {
+	fs.readFile("display.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+app.post('/display', function(req, res) {
+	//res.writeHead(200, { 'Content-Type': 'text/html' });
+	//res.write("Displaying");
+	//res.write(req.body.acc_no + " " + req.body.details + " " + req.body.phone + " " + req.body.address);
+	var data =  addon.display(req.body.acc_no);
+	console.log("name = " + data.name);
+	res.send(data);
+	//res.end();
 });
 
 
