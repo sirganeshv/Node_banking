@@ -172,6 +172,22 @@ app.post('/account_statement', function(req, res) {
 });
 
 
+app.get('/account_statement_range',function(req,resp) {
+	fs.readFile("account_statement_range.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+
+app.post('/account_statement_range', function(req, res) {
+	var data =  addon.print_account_statement_in_range(req.body.acc_no,req.body.start_hour,req.body.start_min,req.body.stop_hour,req.body.stop_min);
+	//console.log("name = " + data.name);
+	res.send(data);
+});
+
+
 app.get('/standing_instructions',function(req,resp) {
 	fs.readFile("standing_instructions.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });

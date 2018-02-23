@@ -581,55 +581,6 @@ bool forgot_password(int i) {
 }*/
 
 
-//Prints the account summary in the given range
-void print_account_summary_from_to(int start_hour,int start_min,int stop_hour,int stop_min,int acc_no) {
-	cout<<"\nAcc no\t\tDeposit\t\tWithdraw\tBalance\t\tTime\n";
-	bool valid_time;
-	for(int i = 0;i < transactions.size();i++) {
-		if(transactions[i].acc_no != acc_no)
-			continue;
-		valid_time = false;
-		if(!is_timestamp_in_range(start_hour,start_min,stop_hour,stop_min,transactions[i].timestamp))
-			continue;
-		cout<<transactions[i].acc_no<<"\t\t";
-		cout<<transactions[i].deposit<<"\t\t";
-		cout<<transactions[i].withdraw<<"\t\t";
-		cout<<transactions[i].balance<<"\t\t";
-		cout<<get_timestamp_string(transactions[i].timestamp)<<"\n";
-	}
-}
-
-
-//Get the range for displaying account summary and print it
-void print_account_summary_in_range()  {
-	int acc_no = get_acc_no();
-	int k;
-	for(k = 0;k < customer_list.size();k++) {
-		if(customer_list[k].acc_no == acc_no) {
-			customer_list.push_back(customer_list[k]);
-			customer_list.erase(customer_list.begin() +  k );
-			customer_frequency.push_back(customer_frequency[k]);
-			customer_frequency.erase(customer_frequency.begin() + k);
-			break;
-		}
-	}
-	if(k == customer_list.size())
-		read_customer(acc_no);
-	if(find_customer_position(acc_no) == -1) {
-		return;
-	}
-	int start_min,start_hour,stop_min,stop_hour;
-	cout<<"Enter Start time (hh mm)\t";
-	get_time(&start_hour,&start_min);
-	cout<<"Enter End time (hh mm)\t\t";
-	get_time(&stop_hour,&stop_min);
-	if(is_time_less_than_equal(start_hour,start_min,stop_hour,stop_min))
-		print_account_summary_from_to(start_hour,start_min,stop_hour,stop_min,acc_no);
-	else 
-		cout<<"Enter correct start and end times";
-}
-
-
 //Prints pending transaction (Not visible to user)
 void print_pending_transactions() {
 	if(pending_transactions.size() > 0 ) {
@@ -1575,6 +1526,56 @@ void print_account_statement(const FunctionCallbackInfo<Value>& args) {
 }
 
 
+//Prints the account summary in the given range
+void print_account_statement_in_range(const FunctionCallbackInfo<Value>& args) {
+	int acc_no = args[0]->NumberValue();
+	int start_hour = args[1]->NumberValue();
+	int start_min = args[2]->NumberValue();
+	int stop_hour = args[3]->NumberValue();
+	int stop_min = args[4]->NumberValue();
+	int k;
+	for(k = 0;k < customer_list.size();k++) {
+		if(customer_list[k].acc_no == acc_no) {
+			customer_list.push_back(customer_list[k]);
+			customer_list.erase(customer_list.begin() +  k );
+			customer_frequency.push_back(customer_frequency[k]);
+			customer_frequency.erase(customer_frequency.begin() + k);
+			break;
+		}
+	}
+	if(k == customer_list.size())
+		read_customer(acc_no);
+	if(find_customer_position(acc_no) == -1) {
+		return;
+	}
+	bool valid_time;
+	Isolate* isolate = args.GetIsolate();
+	Local<Array> result_list = Array::New(isolate);
+	int j = 0;
+	for(int i = 0;i < transactions.size();i++) {
+		if(transactions[i].acc_no != acc_no)
+			continue;
+		valid_time = false;
+		if(!is_timestamp_in_range(start_hour,start_min,stop_hour,stop_min,transactions[i].timestamp))
+			continue;
+		Local<Object> obj = Object::New(isolate);
+		obj->Set(String::NewFromUtf8(isolate, "acc_no"), 
+			Number::New(isolate, transactions[i].acc_no));
+		obj->Set(String::NewFromUtf8(isolate, "deposit"), 
+			String::NewFromUtf8(isolate, transactions[i].deposit));
+		obj->Set(String::NewFromUtf8(isolate, "withdraw"), 
+			String::NewFromUtf8(isolate, transactions[i].withdraw));
+		obj->Set(String::NewFromUtf8(isolate, "balance"), 
+			Number::New(isolate, transactions[i].balance));
+		obj->Set(String::NewFromUtf8(isolate, "time"), 
+			String::NewFromUtf8(isolate, get_timestamp_string(transactions[i].timestamp).c_str()));
+		result_list->Set(j,obj);
+		j++;
+	}
+	args.GetReturnValue().Set(result_list);
+}
+
+
 //Adds standing instructions
 void add_standing_transactions(const FunctionCallbackInfo<Value>& args) {
 	int withdraw_acc_no = args[0]->NumberValue();;
@@ -1836,6 +1837,7 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "transfer_money", transfer_money);
 	NODE_SET_METHOD(exports, "schedule_transfer", schedule_transfer);
 	NODE_SET_METHOD(exports, "print_account_statement", print_account_statement);
+	NODE_SET_METHOD(exports, "print_account_statement_in_range",print_account_statement_in_range);
 	NODE_SET_METHOD(exports, "standing_instructions", add_standing_transactions);
 	NODE_SET_METHOD(exports, "fixed_deposit", fixed_deposit);
 	NODE_SET_METHOD(exports, "get_security_question", get_security_question);
