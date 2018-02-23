@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 
 var http = require("http");
 
-permittedLinker = ['localhost:8080', '127.0.0.1:8080'];  // who can link here?
+permittedLinker = ['localhost:8080', '127.0.0.1:8080', '172.24.121.91'];  // who can link here?
 
 app.use(function(req, res, next) {
 	var i=0, notFound=1, referer=req.get('Referer');
@@ -100,11 +100,18 @@ app.get('/update_customer',function(req,resp) {
 });
 
 app.post('/update_customer', function(req, res) {
-	res.writeHead(200, { 'Content-Type': 'text/html' });
-	res.write("Going to update");
-	addon.update_account(req.body.acc_no,req.body.details,req.body.phone,req.body.address);
-	console.log("inserted");
-	res.end();
+	var is_valid = addon.is_valid_account(req.body.acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Account number");
+		res.end();
+	}
+	else {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		addon.update_account(req.body.acc_no,req.body.details,req.body.phone,req.body.address);
+		res.write("Updated");
+		res.end();
+	}
 });
 
 
