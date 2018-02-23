@@ -275,7 +275,7 @@ void listener() {
 			}
 			struct tm current = get_timestamp();
 			//if(is_deposited) {
-				cout<<"Timer at "<<next_time.tm_hour<<" : "<<next_time.tm_min<<" : "<<next_time.tm_sec<<"\n";
+				//cout<<"Timer at "<<next_time.tm_hour<<" : "<<next_time.tm_min<<" : "<<next_time.tm_sec<<"\n";
 				timer = CTimer(listener, (mktime(&next_time) - mktime(&current))*1000);
 				timer.Start();
 			//}
@@ -548,7 +548,7 @@ void initialize () {
 	next_time = get_timestamp();
 	next_fd_time = get_timestamp();
 	load_files();
-	cout<<next_time.tm_hour<<" : "<<next_time.tm_min<<"\n";
+	//cout<<next_time.tm_hour<<" : "<<next_time.tm_min<<"\n";
 	if(!pending_transactions.empty()) {
 		is_first_run = true;
 		listener();
@@ -871,7 +871,7 @@ void add_operator(const FunctionCallbackInfo<Value>& args) {
 	v8::String::Utf8Value param1(args[0]->ToString());
 	std::string name = std::string(*param1);
 	strcpy(opratorr.name,name.c_str());
-	opratorr.id = args[1]->NumberValue();
+	opratorr.id = args[1]->Int32Value();
 	v8::String::Utf8Value param2(args[2]->ToString());
 	std::string password = std::string(*param2);
 	strcpy(opratorr.password,password.c_str());
@@ -901,7 +901,7 @@ void add_operator(const FunctionCallbackInfo<Value>& args) {
 void operator_login(const FunctionCallbackInfo<Value>& args) {
 	Isolate* isolate = args.GetIsolate();
 	int id;
-	id = args[0]->NumberValue();
+	id = args[0]->Int32Value();
 	v8::String::Utf8Value param1(args[1]->ToString());
 	std::string password = std::string(*param1);
 	int i;
@@ -927,8 +927,8 @@ void add_account(const FunctionCallbackInfo<Value>& args){
 	v8::String::Utf8Value param1(args[0]->ToString());
 	std::string name = std::string(*param1);
 	strcpy(customer.customer_name,name.c_str());
-	customer.age = args[1]->NumberValue();	
-	int32_t phone_no = args[2]->NumberValue();
+	customer.age = args[1]->Int32Value();	
+	int32_t phone_no = args[2]->Int32Value();
 	strcpy(customer.phone_no,std::to_string(phone_no).c_str());	
 	v8::String::Utf8Value param2(args[3]->ToString());
 	std::string address = std::string(*param2);
@@ -966,7 +966,7 @@ void add_account(const FunctionCallbackInfo<Value>& args){
 //Update account details (phone_no and address for existing customer)
 void update_account(const FunctionCallbackInfo<Value>& args){
 	Isolate* isolate = args.GetIsolate();
-	int acc_no = args[0]->NumberValue();
+	int acc_no = args[0]->Int32Value();
 	int j;
 	for(j = 0;j < customer_list.size();j++) {
 		if(customer_list[j].acc_no == acc_no) {
@@ -985,7 +985,7 @@ void update_account(const FunctionCallbackInfo<Value>& args){
 	v8::String::Utf8Value param1(args[1]->ToString());
 	std::string option = std::string(*param1);
 	if(!strcmp("phone",option.c_str())) {
-		int32_t phone_no = args[2]->NumberValue();
+		int32_t phone_no = args[2]->Int32Value();
 		strcpy(customer_list[i].phone_no,std::to_string(phone_no).c_str());
 	}
 	else {
@@ -1007,7 +1007,7 @@ void update_account(const FunctionCallbackInfo<Value>& args){
 //Delete account of a user based on account number
 void delete_account(const FunctionCallbackInfo<Value>& args) {
 	//int curr_customer;
-	int acc_no = args[0]->NumberValue();
+	int acc_no = args[0]->Int32Value();
 	int operator_id = find_operator(acc_no);
 	int k;
 	for(k = 0;k < customer_list.size();k++) {
@@ -1059,7 +1059,7 @@ void display_customer(const FunctionCallbackInfo<Value>& args) {
 	time_t nowtime;
 	tm time;
 	char milli[10];
-	int acc_no = args[0]->NumberValue();
+	int acc_no = args[0]->Int32Value();
 	int k;
 	for(k = 0;k < customer_list.size();k++) {
 		if(customer_list[k].acc_no == acc_no) {
@@ -1158,7 +1158,7 @@ void display_all(const FunctionCallbackInfo<Value>& args) {
 
 void deposit(const FunctionCallbackInfo<Value>& args) {
 	cout<<"inside deposit\n";
-	int32_t acc_no = args[0]->NumberValue();
+	int32_t acc_no = args[0]->Int32Value();
 	cout<<acc_no<<"\n";
 	int j;
 	customer_details customer;
@@ -1181,7 +1181,7 @@ void deposit(const FunctionCallbackInfo<Value>& args) {
 	if(i == -1)
 		return;
 	cout<<"present\n";
-	int32_t deposit_value = args[1]->NumberValue();
+	int32_t deposit_value = args[1]->Int32Value();
 	cout<<deposit_value<<"\n";
 	bool is_successful = deposit_money(i,deposit_value);
 	cout<<"deposited\n";
@@ -1193,7 +1193,7 @@ void deposit(const FunctionCallbackInfo<Value>& args) {
 }
 
 void withdraw(const FunctionCallbackInfo<Value>& args) {
-	int32_t acc_no = args[0]->NumberValue();
+	int32_t acc_no = args[0]->Int32Value();
 	cout<<acc_no<<"\n";
 	int j;
 	customer_details customer;
@@ -1221,7 +1221,7 @@ void withdraw(const FunctionCallbackInfo<Value>& args) {
 		return;
 	}
 	cout<<"present\n";
-	int32_t withdraw_value = args[1]->NumberValue();
+	int32_t withdraw_value = args[1]->Int32Value();
 	
 	v8::String::Utf8Value param1(args[2]->ToString());
 	std::string customer_passphrase = std::string(*param1);
@@ -1249,7 +1249,7 @@ void withdraw(const FunctionCallbackInfo<Value>& args) {
 
 //Transfer money to another existing account
 void transfer_money(const FunctionCallbackInfo<Value>& args) {
-	int32_t withdraw_acc_no = args[0]->NumberValue();
+	int32_t withdraw_acc_no = args[0]->Int32Value();
 	int k;
 	for(k = 0;k < customer_list.size();k++) {
 		if(customer_list[k].acc_no == withdraw_acc_no) {
@@ -1270,7 +1270,7 @@ void transfer_money(const FunctionCallbackInfo<Value>& args) {
 		cout<<"Max number of transactions reached";
 		return;
 	}
-	int amount = args[1]->NumberValue();
+	int amount = args[1]->Int32Value();
 	cout<<amount<<"\n";
 	while(amount <= 0) {
 		cout<<"Enter valid amount\n";
@@ -1285,7 +1285,7 @@ void transfer_money(const FunctionCallbackInfo<Value>& args) {
 			cout<<"Enter valid number(4 digits)\n";
 			cin>>phone_no;
 		}*/
-		int32_t phone = args[2]->NumberValue();
+		int32_t phone = args[2]->Int32Value();
 		strcpy(phone_no,std::to_string(phone).c_str());
 		vector<customer_details> customers = get_accounts_by_phone_no(phone_no);
 		if(customers.empty()) {
@@ -1356,7 +1356,7 @@ void transfer_money(const FunctionCallbackInfo<Value>& args) {
 
 //Schedules transfer in future time
 void schedule_transfer(const FunctionCallbackInfo<Value>& args) {
-	int withdraw_acc_no = args[0]->NumberValue();
+	int withdraw_acc_no = args[0]->Int32Value();
 	int k;
 	for(k = 0;k < customer_list.size();k++) {
 		if(customer_list[k].acc_no == withdraw_acc_no) {
@@ -1376,7 +1376,7 @@ void schedule_transfer(const FunctionCallbackInfo<Value>& args) {
 		cout<<"The customer is under a different operator";
 		return;
 	}
-	int amount = args[1] -> NumberValue();
+	int amount = args[1] -> Int32Value();
 	while(amount <= 0) {
 		cout<<"Enter valid amount\n";
 		cin>>amount;
@@ -1384,7 +1384,7 @@ void schedule_transfer(const FunctionCallbackInfo<Value>& args) {
 	int acc_no;	
 	if(customer_list[i].balance - amount > 0) {
 		//cout<<"Enter account number of the receiver\t";		
-		acc_no = args[2]->NumberValue();
+		acc_no = args[2]->Int32Value();
 		for(k = 0;k < customer_list.size();k++) {
 			if(customer_list[k].acc_no == acc_no) {
 				customer_list.push_back(customer_list[k]);
@@ -1436,8 +1436,8 @@ void schedule_transfer(const FunctionCallbackInfo<Value>& args) {
 		while(true) {
 			//cout<<"Enter time (hh mm)\t";
 			//get_time(&hour,&min);
-			hour = args[5]->NumberValue();
-			min = args[6]->NumberValue();
+			hour = args[5]->Int32Value();
+			min = args[6]->Int32Value();
 			if(hour >= get_timestamp().tm_hour) {
 				if(hour == get_timestamp().tm_hour && min <= get_timestamp().tm_min) {
 					cout<<"Enter future time\n";
@@ -1492,7 +1492,7 @@ void print_account_statement(const FunctionCallbackInfo<Value>& args) {
 	Isolate* isolate = args.GetIsolate();
 	Local<Array> result_list = Array::New(isolate);
 	int j = 0;
-	int acc_no = args[0]->NumberValue();
+	int acc_no = args[0]->Int32Value();
 	int k;
 	for(k = 0;k < customer_list.size();k++) {
 		if(customer_list[k].acc_no == acc_no) {
@@ -1532,11 +1532,11 @@ void print_account_statement(const FunctionCallbackInfo<Value>& args) {
 
 //Prints the account summary in the given range
 void print_account_statement_in_range(const FunctionCallbackInfo<Value>& args) {
-	int acc_no = args[0]->NumberValue();
-	int start_hour = args[1]->NumberValue();
-	int start_min = args[2]->NumberValue();
-	int stop_hour = args[3]->NumberValue();
-	int stop_min = args[4]->NumberValue();
+	int acc_no = args[0]->Int32Value();
+	int start_hour = args[1]->Int32Value();
+	int start_min = args[2]->Int32Value();
+	int stop_hour = args[3]->Int32Value();
+	int stop_min = args[4]->Int32Value();
 	int k;
 	for(k = 0;k < customer_list.size();k++) {
 		if(customer_list[k].acc_no == acc_no) {
@@ -1582,7 +1582,7 @@ void print_account_statement_in_range(const FunctionCallbackInfo<Value>& args) {
 
 //Adds standing instructions
 void add_standing_transactions(const FunctionCallbackInfo<Value>& args) {
-	int withdraw_acc_no = args[0]->NumberValue();;
+	int withdraw_acc_no = args[0]->Int32Value();;
 	int k;
 	for(k = 0;k < customer_list.size();k++) {
 		if(customer_list[k].acc_no == withdraw_acc_no) {
@@ -1602,14 +1602,14 @@ void add_standing_transactions(const FunctionCallbackInfo<Value>& args) {
 		cout<<"The customer is under a different operator";
 		return;
 	}
-	int amount = args[1]->NumberValue();
+	int amount = args[1]->Int32Value();
 	while(amount <= 0) {
 		cout<<"Enter valid amount\n";
 		cin>>amount;
 	}
 	int acc_no;	
 	if(customer_list[i].balance - amount > 0) {
-		acc_no = args[2]->NumberValue();
+		acc_no = args[2]->Int32Value();
 		for(k = 0;k < customer_list.size();k++) {
 			if(customer_list[k].acc_no == acc_no) {
 				customer_list.push_back(customer_list[k]);
@@ -1659,8 +1659,8 @@ void add_standing_transactions(const FunctionCallbackInfo<Value>& args) {
 		}
 		int hour,min;
 		//while(true) {
-			hour = args[5]->NumberValue();
-			min = args[6]->NumberValue();
+			hour = args[5]->Int32Value();
+			min = args[6]->Int32Value();
 			if(hour >= get_timestamp().tm_hour) {
 				if(hour == get_timestamp().tm_hour && min <= get_timestamp().tm_min) {
 					cout<<"Enter future time\n";
@@ -1668,7 +1668,7 @@ void add_standing_transactions(const FunctionCallbackInfo<Value>& args) {
 				}
 			}
 		//}
-		int period = args[7]->NumberValue();
+		int period = args[7]->Int32Value();
 		tm time = get_timestamp();
 		time.tm_min = min;
 		time.tm_hour = hour;
@@ -1711,7 +1711,7 @@ void add_standing_transactions(const FunctionCallbackInfo<Value>& args) {
 
 //Do fixed deposit
 void fixed_deposit(const FunctionCallbackInfo<Value>& args) {
-	int32_t acc_no = args[0]->NumberValue();
+	int32_t acc_no = args[0]->Int32Value();
 	int j;
 	struct customer_details customer;
 	struct fixed_deposit deposit;
@@ -1730,7 +1730,7 @@ void fixed_deposit(const FunctionCallbackInfo<Value>& args) {
 	if(i == -1)
 		return;
 	//int deposit_value,duration;
-	deposit.principal = args[1]->NumberValue();
+	deposit.principal = args[1]->Int32Value();
 	while(deposit.principal <= 0) {
 		cout<<"Enter valid amount\n";
 		cin>>deposit.principal;
@@ -1738,7 +1738,7 @@ void fixed_deposit(const FunctionCallbackInfo<Value>& args) {
 	if(customer_list[i].balance >= deposit.principal) {
 		customer_list[i].balance -= deposit.principal;
 	}
-	deposit.duration = args[2]->NumberValue();
+	deposit.duration = args[2]->Int32Value();
 	while(deposit.duration <= 0) {
 		cout<<"Enter valid duration\n";
 		cin>>deposit.duration;
@@ -1780,7 +1780,7 @@ void fixed_deposit(const FunctionCallbackInfo<Value>& args) {
 }
 
 void get_security_question(const FunctionCallbackInfo<Value>& args) {
-	int acc_no = args[0]->NumberValue();
+	int acc_no = args[0]->Int32Value();
 	int j;
 	for(j = 0;j < customer_list.size();j++) {
 		if(customer_list[j].acc_no == acc_no) {
@@ -1801,7 +1801,7 @@ void get_security_question(const FunctionCallbackInfo<Value>& args) {
 }
 
 void forgot_password(const FunctionCallbackInfo<Value>& args) {
-	int acc_no = args[0]->NumberValue();
+	int acc_no = args[0]->Int32Value();
 	v8::String::Utf8Value param2(args[1]->ToString());
 	std::string answer = std::string(*param2);
 	int i = find_customer_position(acc_no);
@@ -1813,21 +1813,19 @@ void forgot_password(const FunctionCallbackInfo<Value>& args) {
 }
 
 void change_password(const FunctionCallbackInfo<Value>& args) {
-	int acc_no = args[0]->NumberValue();
+	int acc_no = args[0]->Int32Value();
 	int i = find_customer_position(acc_no);
 	v8::String::Utf8Value param1(args[1]->ToString());
 	std::string passphrase = std::string(*param1);
 	strcpy(customer_list[i].passphrase,passphrase.c_str());
 	customer_list[i].wrong_attempts = 0;
 	update_customer(customer_list[i]);
-	cout<<customer_list[i].passphrase;
-	//args.GetReturnValue().Set(String::NewFromUtf8(isolate, "true"));
 }
 
 
 void is_valid_account(const FunctionCallbackInfo<Value>& args) {
 	Isolate* isolate = args.GetIsolate();
-	int acc_no = args[0]->NumberValue();
+	int acc_no = args[0]->Int32Value();
 	int j;
 	for(j = 0;j < customer_list.size();j++) {
 		if(customer_list[j].acc_no == acc_no) {
