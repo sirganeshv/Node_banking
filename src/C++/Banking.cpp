@@ -904,7 +904,7 @@ void add_operator(const FunctionCallbackInfo<Value>& args) {
 		opratorr.is_admin = true;
 	else
 		opratorr.is_admin = false;
-	cout<<"string  "<<is_admin;
+	//cout<<"string  "<<is_admin;
 	current_operator_position = current_operator->id;
 	operators.push_back(opratorr);
 
