@@ -88,7 +88,7 @@ bool read_customer_from_db(int acc_no) {
 	time_t timee = time(0);
 	tm time_struct = *localtime(&timee);
 	//timevall time_val;
-	while ((row = mysql_fetch_row(result))) { 
+	if ((row = mysql_fetch_row(result))) { 
 		customer.acc_no = atoi(row[0]);
 		strcpy(customer.customer_name,row[1]);
 		customer.age = atoi(row[2]);
@@ -120,7 +120,10 @@ bool read_customer_from_db(int acc_no) {
 		timee = mktime(&time_struct);
 		customer.last_accessed_time.tv_sec = static_cast<long> (timee);
 		customer.last_accessed_time.tv_usec = (long)stoi(time_string.substr(0));
-	}  
+	}
+	if(!row) {
+		return false;
+	}
 	if(customer.is_active == true) {
 		if(customer_list.size() == 3) {
 			int position = find_least_frequent_customer();

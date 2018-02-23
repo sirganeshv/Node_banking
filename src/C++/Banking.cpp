@@ -1825,9 +1825,30 @@ void change_password(const FunctionCallbackInfo<Value>& args) {
 }
 
 
-bool is_valid_account(const FunctionCallbackInfo<Value>& args) {
-	
+void is_valid_account(const FunctionCallbackInfo<Value>& args) {
+	Isolate* isolate = args.GetIsolate();
+	int acc_no = args[0]->NumberValue();
+	int j;
+	for(j = 0;j < customer_list.size();j++) {
+		if(customer_list[j].acc_no == acc_no) {
+			customer_list.push_back(customer_list[j]);
+			customer_list.erase(customer_list.begin()+j);
+			customer_frequency.push_back(customer_frequency[j]);
+			customer_frequency.erase(customer_frequency.begin() + j);
+			break;
+		}
+	}
+	bool is_present;
+	if(j == customer_list.size())
+		is_present = read_customer(acc_no);
+	if(!is_present) {
+		args.GetReturnValue().Set(String::NewFromUtf8(isolate, "false"));
+		return;
+	}
+	args.GetReturnValue().Set(String::NewFromUtf8(isolate, "true"));
 }
+
+
 void callMain(const FunctionCallbackInfo<Value>& args) {
 	main();
 }	

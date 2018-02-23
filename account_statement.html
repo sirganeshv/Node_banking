@@ -25,24 +25,28 @@ table, td {
 				contentType: 'application/json',
 				url: '/account_statement',						
 				success: function(data) {
-					$('#employee').css("display","initial");
-					var table = document.getElementById("emptable");
-					var rowCount = table.rows.length;
-					for (var x=rowCount-1; x>0; x--) {
-					   table.deleteRow(x);
-					}
-					for(i = 0; i < data.length;i++) {
-						var row = table.insertRow(i+1);
-						var cell1 = row.insertCell(0);
-						cell1.innerHTML = data[i].acc_no;
-						var cell2 = row.insertCell(1);
-						cell2.innerHTML = data[i].deposit;
-						var cell3 = row.insertCell(2);
-						cell3.innerHTML = data[i].withdraw;
-						var cell4 = row.insertCell(3);
-						cell4.innerHTML = data[i].balance;
-						var cell5 = row.insertCell(4);
-						cell5.innerHTML = data[i].time;
+					if(data === "false") 
+						alert("Invalid account number");
+					else {
+						$('#employee').css("display","initial");
+						var table = document.getElementById("emptable");
+						var rowCount = table.rows.length;
+						for (var x=rowCount-1; x>0; x--) {
+						   table.deleteRow(x);
+						}
+						for(i = 0; i < data.length;i++) {
+							var row = table.insertRow(i+1);
+							var cell1 = row.insertCell(0);
+							cell1.innerHTML = data[i].acc_no;
+							var cell2 = row.insertCell(1);
+							cell2.innerHTML = data[i].deposit;
+							var cell3 = row.insertCell(2);
+							cell3.innerHTML = data[i].withdraw;
+							var cell4 = row.insertCell(3);
+							cell4.innerHTML = data[i].balance;
+							var cell5 = row.insertCell(4);
+							cell5.innerHTML = data[i].time;
+						} 
 					}
 				},
 				error : function(xhr, status) {

@@ -41,10 +41,7 @@ app.get('/',function(req,resp) {
 
 
 app.post('/login', function(req, res) {
-	//res.writeHead(200, { 'Content-Type': 'text/html' });
-	//res.write("Creating operator");
 	var logged = addon.login(req.body.id,req.body.pass);
-	console.log(logged);
 	if(logged === "true")
 		res.redirect("/home");
 	else
@@ -121,11 +118,18 @@ app.get('/delete_account',function(req,resp) {
 
 
 app.post('/delete_account', function(req, res) {
-	res.writeHead(200, { 'Content-Type': 'text/html' });
-	res.write("Deleted");
-	addon.delete_account(req.body.acc_no,req.body.operator_password);
-	console.log("Deleted");
-	res.end();
+	var is_valid = addon.is_valid_account(req.body.acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Account number");
+		res.end();
+	}
+	else {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Deleted");
+		addon.delete_account(req.body.acc_no,req.body.operator_password);
+		res.end();
+	}
 });
 
 
@@ -140,9 +144,16 @@ app.get('/display',function(req,resp) {
 
 
 app.post('/display', function(req, res) {
-	var data =  addon.display(req.body.acc_no);
-	console.log("name = " + data.name);
-	res.send(data);
+	var is_valid = addon.is_valid_account(req.body.acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("false");
+		res.end();
+	}
+	else {
+		var data =  addon.display(req.body.acc_no);
+		res.send(data);
+	}
 });
 
 
@@ -169,10 +180,18 @@ app.get('/deposit',function(req,resp) {
 });
 
 app.post('/deposit', function(req, res) {
-	res.writeHead(200, { 'Content-Type': 'text/html' });
-	res.write("Deposited");
-	addon.deposit(req.body.acc_no,req.body.money);
-	res.end();
+	var is_valid = addon.is_valid_account(req.body.acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Account Number");
+		res.end();
+	}
+	else {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Deposited");
+		addon.deposit(req.body.acc_no,req.body.money);
+		res.end();
+	}
 });
 
 app.get('/withdraw',function(req,resp) {
@@ -184,10 +203,18 @@ app.get('/withdraw',function(req,resp) {
 });
 
 app.post('/withdraw', function(req, res) {
-	res.writeHead(200, { 'Content-Type': 'text/html' });
-	res.write("Withdrawn");
-	addon.withdraw(req.body.acc_no,req.body.money,req.body.customer_passphrase,req.body.operator_password);
-	res.end();
+	var is_valid = addon.is_valid_account(req.body.acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Account Number");
+		res.end();
+	}
+	else {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Withdrawn");
+		addon.withdraw(req.body.acc_no,req.body.money,req.body.customer_passphrase,req.body.operator_password);
+		res.end();
+	}
 });
 
 app.get('/transfer',function(req,resp) {
@@ -199,10 +226,18 @@ app.get('/transfer',function(req,resp) {
 });
 
 app.post('/transfer', function(req, res) {
-	res.writeHead(200, { 'Content-Type': 'text/html' });
-	res.write("Transfered");
-	addon.transfer_money(req.body.withdraw_acc_no,req.body.money,req.body.phone_no);
-	res.end();
+	var is_valid = addon.is_valid_account(req.body.acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Account Number");
+		res.end();
+	}
+	else {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Transfered");
+		addon.transfer_money(req.body.withdraw_acc_no,req.body.money,req.body.phone_no);
+		res.end();
+	}
 });
 
 
@@ -215,10 +250,23 @@ app.get('/schedule_transfer',function(req,resp) {
 });
 
 app.post('/schedule_transfer', function(req, res) {
-	res.writeHead(200, { 'Content-Type': 'text/html' });
-	res.write("Scheduled");
-	addon.schedule_transfer(req.body.withdraw_acc_no,req.body.money,req.body.acc_no,req.body.customer_passphrase,req.body.operator_password,req.body.hour,req.body.min);
-	res.end();
+	var is_valid = addon.is_valid_account(req.body.withdraw_acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Account Number");
+		res.end();
+	}
+	else if(addon.is_valid_account(req.body.acc_no) === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Reciever Account Number");
+		res.end();
+	}
+	else {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Scheduled");
+		addon.schedule_transfer(req.body.withdraw_acc_no,req.body.money,req.body.acc_no,req.body.customer_passphrase,req.body.operator_password,req.body.hour,req.body.min);
+		res.end();
+	}
 });
 
 
@@ -232,9 +280,16 @@ app.get('/account_statement',function(req,resp) {
 
 
 app.post('/account_statement', function(req, res) {
-	var data =  addon.print_account_statement(req.body.acc_no);
-	//console.log("name = " + data.name);
-	res.send(data);
+	var is_valid = addon.is_valid_account(req.body.acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("false");
+		res.end();
+	}
+	else {
+		var data =  addon.print_account_statement(req.body.acc_no);
+		res.send(data);
+	}
 });
 
 
@@ -248,9 +303,16 @@ app.get('/account_statement_range',function(req,resp) {
 
 
 app.post('/account_statement_range', function(req, res) {
-	var data =  addon.print_account_statement_in_range(req.body.acc_no,req.body.start_hour,req.body.start_min,req.body.stop_hour,req.body.stop_min);
-	//console.log("name = " + data.name);
-	res.send(data);
+	var is_valid = addon.is_valid_account(req.body.acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("false");
+		res.end();
+	}
+	else {
+		var data =  addon.print_account_statement_in_range(req.body.acc_no,req.body.start_hour,req.body.start_min,req.body.stop_hour,req.body.stop_min);
+		res.send(data);
+	}
 });
 
 
@@ -263,12 +325,25 @@ app.get('/standing_instructions',function(req,resp) {
 });
 
 app.post('/standing_instructions', function(req, res) {
-	res.writeHead(200, { 'Content-Type': 'text/html' });
-	res.write("Standing instructions added for every ");
-	res.write(req.body.period);
-	res.write(" minutes");
-	addon.standing_instructions(req.body.withdraw_acc_no,req.body.money,req.body.acc_no,req.body.customer_passphrase,req.body.operator_password,req.body.hour,req.body.min,req.body.period);
-	res.end();
+	var is_valid = addon.is_valid_account(req.body.withdraw_acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Account Number");
+		res.end();
+	}
+	else if(addon.is_valid_account(req.body.acc_no) === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Reciever Account Number");
+		res.end();
+	}
+	else {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Standing instructions added for every ");
+		res.write(req.body.period);
+		res.write(" minutes");
+		addon.standing_instructions(req.body.withdraw_acc_no,req.body.money,req.body.acc_no,req.body.customer_passphrase,req.body.operator_password,req.body.hour,req.body.min,req.body.period);
+		res.end();
+	}
 });
 
 
@@ -281,10 +356,18 @@ app.get('/fixed_deposit',function(req,resp) {
 });
 
 app.post('/fixed_deposit', function(req, res) {
-	res.writeHead(200, { 'Content-Type': 'text/html' });
-	res.write("Deposited");
-	addon.fixed_deposit(req.body.acc_no,req.body.money,req.body.duration);
-	res.end();
+	var is_valid = addon.is_valid_account(req.body.acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Account Number");
+		res.end();
+	}
+	else {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Deposited");
+		addon.fixed_deposit(req.body.acc_no,req.body.money,req.body.duration);
+		res.end();
+	}
 });
 
 app.get('/forgot_password',function(req,resp) {
@@ -296,11 +379,19 @@ app.get('/forgot_password',function(req,resp) {
 });
 
 app.post('/forgot_password', function(req, res){
-	res.writeHead(200, { 'Content-Type': 'text/html' });
-	var jsonstr = JSON.stringify(req.body.acc_no);
-	var acc_no = jsonstr.slice(1, jsonstr.length-1);
-	res.write(addon.get_security_question(acc_no).toString());
-	res.end();
+	var is_valid = addon.is_valid_account(req.body.acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("false");
+		res.end();
+	}
+	else {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		var jsonstr = JSON.stringify(req.body.acc_no);
+		var acc_no = jsonstr.slice(1, jsonstr.length-1);
+		res.write(addon.get_security_question(acc_no).toString());
+		res.end();
+	}
 });
 
 app.post('/security', function(req, res,next){
