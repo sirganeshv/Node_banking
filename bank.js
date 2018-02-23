@@ -250,8 +250,12 @@ app.get('/schedule_transfer',function(req,resp) {
 });
 
 app.post('/schedule_transfer', function(req, res) {
-	var is_valid = addon.is_valid_account(req.body.withdraw_acc_no);
-	if(is_valid === "false") {
+	if(req.body.acc_no === req.body.withdraw_acc_no) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("You cannot send money to yourself");
+		res.end();
+	}
+	else if(addon.is_valid_account(req.body.withdraw_acc_no) === "false") {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Invalid Account Number");
 		res.end();
@@ -325,8 +329,12 @@ app.get('/standing_instructions',function(req,resp) {
 });
 
 app.post('/standing_instructions', function(req, res) {
-	var is_valid = addon.is_valid_account(req.body.withdraw_acc_no);
-	if(is_valid === "false") {
+	if(req.body.acc_no === req.body.withdraw_acc_no) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("You cannot send money to yourself");
+		res.end();
+	}
+	else if(addon.is_valid_account(req.body.withdraw_acc_no) === "false") {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Invalid Account Number");
 		res.end();
