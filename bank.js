@@ -24,7 +24,23 @@ app.post('/add_customer', function(req, res) {
 	console.log("going to insert");
 	res.write("writing customer data");
 	addon.add_account(req.body.name,req.body.age,req.body.phone,req.body.address,req.body.passphrase,req.body.security_qn,req.body.security_ans);
-	console.log("inserted");
+	res.end();
+});
+
+
+app.get('/add_operator',function(req,resp) {
+	fs.readFile("add_operator.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+app.post('/add_operator', function(req, res) {
+	res.writeHead(200, { 'Content-Type': 'text/html' });
+	console.log("going to insert");
+	res.write("Creating operator");
+	addon.add_operator(req.body.name,req.body.id,req.body.pass,req.body.is_admin);
 	res.end();
 });
 

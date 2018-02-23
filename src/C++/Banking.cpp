@@ -321,36 +321,6 @@ void init_clear_limits() {
 }
 
 
-//Adds a new operator
-void add_operator() {
-	bank_operator opratorr;
-	cout<<"Creating an operator account.......\n";
-	cout<<"Enter your name\t\t";
-	cin>>opratorr.name;
-	cout<<"Enter your id\t\t";
-	cin>>opratorr.id;
-	cout<<"Enter you password\t";
-	cin>>opratorr.password;
-	cout<<"Give admin privileges ?\n0->No(default)   1->Yes\t";
-	int choice;
-	cin>>choice;
-	if(choice == 1)
-		opratorr.is_admin = true;
-	current_operator_position = current_operator->id;
-	operators.push_back(opratorr);
-
-	for(int i = 0;i < operators.size();i++)
-		if(operators[i].id == current_operator_position) {
-			current_operator = & operators[i];
-			break;
-		}
-	srand(1);
-	write_files();
-	srand(1);
-	load_files();
-}
-
-
 bank_operator oprator;
 //Creates new Admin Operator on first run
 void create_operator() {
@@ -916,6 +886,39 @@ using v8::String;
 using v8::Number;
 using v8::Value;
 using v8::Array;
+
+
+//Adds a new operator
+void add_operator(const FunctionCallbackInfo<Value>& args) {
+	bank_operator opratorr;
+	v8::String::Utf8Value param1(args[0]->ToString());
+	std::string name = std::string(*param1);
+	strcpy(opratorr.name,name.c_str());
+	opratorr.id = args[1]->NumberValue();
+	v8::String::Utf8Value param2(args[2]->ToString());
+	std::string password = std::string(*param2);
+	strcpy(opratorr.password,password.c_str());
+	v8::String::Utf8Value param3(args[3]->ToString());
+	std::string is_admin = std::string(*param3);
+	if(!strcmp(is_admin.c_str(),"yes"))
+		opratorr.is_admin = true;
+	else
+		opratorr.is_admin = false;
+	cout<<"string  "<<is_admin;
+	current_operator_position = current_operator->id;
+	operators.push_back(opratorr);
+
+	for(int i = 0;i < operators.size();i++)
+		if(operators[i].id == current_operator_position) {
+			current_operator = & operators[i];
+			break;
+		}
+	srand(1);
+	write_files();
+	srand(1);
+	load_files();
+}
+
 
 //Adds account for new customer and assigns account number
 void add_account(const FunctionCallbackInfo<Value>& args){
@@ -1828,6 +1831,7 @@ void callMain(const FunctionCallbackInfo<Value>& args) {
 void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "main", callMain);
 	NODE_SET_METHOD(exports, "add_account", add_account);
+	NODE_SET_METHOD(exports, "add_operator", add_operator);
 	NODE_SET_METHOD(exports, "update_account", update_account);
 	NODE_SET_METHOD(exports, "delete_account", delete_account);
 	NODE_SET_METHOD(exports, "display", display_customer);
