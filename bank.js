@@ -72,6 +72,7 @@ app.get('/display',function(req,resp) {
 	});
 });
 
+
 app.post('/display', function(req, res) {
 	var data =  addon.display(req.body.acc_no);
 	console.log("name = " + data.name);
@@ -152,6 +153,22 @@ app.post('/schedule_transfer', function(req, res) {
 	res.write("Scheduled");
 	addon.schedule_transfer(req.body.withdraw_acc_no,req.body.money,req.body.acc_no,req.body.customer_passphrase,req.body.operator_password,req.body.hour,req.body.min);
 	res.end();
+});
+
+
+app.get('/account_statement',function(req,resp) {
+	fs.readFile("account_statement.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+
+app.post('/account_statement', function(req, res) {
+	var data =  addon.print_account_statement(req.body.acc_no);
+	//console.log("name = " + data.name);
+	res.send(data);
 });
 
 
