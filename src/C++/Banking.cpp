@@ -342,30 +342,6 @@ void create_operator() {
 }
 
 
-//Logs the operator in
-void operator_login() {
-	int id;
-	char password[10];
-	cout<<"Login\n";
-	cout<<"Enter your ID\t\t";
-	cin>>id;
-	cout<<"Enter your Password\t";
-	cin>>password;
-	int i;
-	for(i =0 ;i < operators.size();i++) {
-		if((operators[i].id == id) && (!strcmp(operators[i].password,password))) {
-			current_operator = &operators[i];
-			cout<<"Welcome "<<current_operator->name;
-			break;
-		}
-	}
-	if(i == operators.size()) {
-		cout<<"\nEnter you credentials correctly\n\n";
-		operator_login();
-	}
-}
-
-
 //Deposit money into user account
 bool deposit_money(int i,int deposit_value) {
 	customer_list[i].balance += deposit_value;
@@ -569,9 +545,10 @@ void print_pending_transactions() {
 
 
 void initialize () {
-	load_files();
 	next_time = get_timestamp();
 	next_fd_time = get_timestamp();
+	load_files();
+	cout<<next_time.tm_hour<<" : "<<next_time.tm_min<<"\n";
 	if(!pending_transactions.empty()) {
 		is_first_run = true;
 		listener();
@@ -581,13 +558,13 @@ void initialize () {
 		clear_fd();
 	//Creates operator account if there is no operator
 	//Else operator is asked to logged in
-	if(operators.empty()) {
+	/*if(operators.empty()) {
 		cout<<"You are the first operator\n";
 		create_operator();
 	}
 	else
 		operator_login();
-	
+	*/
 }
 
 
@@ -920,6 +897,28 @@ void add_operator(const FunctionCallbackInfo<Value>& args) {
 }
 
 
+//Logs the operator in
+void operator_login(const FunctionCallbackInfo<Value>& args) {
+	Isolate* isolate = args.GetIsolate();
+	int id;
+	id = args[0]->NumberValue();
+	v8::String::Utf8Value param1(args[1]->ToString());
+	std::string password = std::string(*param1);
+	int i;
+	for(i =0 ;i < operators.size();i++) {
+		if((operators[i].id == id) && (!strcmp(operators[i].password,password.c_str()))) {
+			current_operator = &operators[i];
+			cout<<"Welcome "<<current_operator->name;
+			args.GetReturnValue().Set(String::NewFromUtf8(isolate, "true"));
+			break;
+		}
+	}
+	if(i == operators.size()) {
+		args.GetReturnValue().Set(String::NewFromUtf8(isolate, "false"));
+	}
+}
+
+
 //Adds account for new customer and assigns account number
 void add_account(const FunctionCallbackInfo<Value>& args){
 	Isolate* isolate = args.GetIsolate();
@@ -951,7 +950,9 @@ void add_account(const FunctionCallbackInfo<Value>& args){
 	struct transaction initial_transaction;
 	initial_transaction.acc_no = customer.acc_no;
 	transactions.push_back(initial_transaction);
+	cout<<"Operator id is "<<current_operator->id<<"\n";
 	current_operator->customer_acc_no_list[current_operator->no_of_customers] = customer.acc_no;
+	cout<<"customer under operator is "<<current_operator->customer_acc_no_list[0];
 	current_operator->no_of_customers++;
 	struct customer_info customer_information;
 	customer_information.acc_no = customer.acc_no;
@@ -1657,17 +1658,16 @@ void add_standing_transactions(const FunctionCallbackInfo<Value>& args) {
 			return;
 		}
 		int hour,min;
-		while(true) {
+		//while(true) {
 			hour = args[5]->NumberValue();
 			min = args[6]->NumberValue();
 			if(hour >= get_timestamp().tm_hour) {
 				if(hour == get_timestamp().tm_hour && min <= get_timestamp().tm_min) {
 					cout<<"Enter future time\n";
-					continue;
+					return;
 				}
-				break;
 			}
-		}
+		//}
 		int period = args[7]->NumberValue();
 		tm time = get_timestamp();
 		time.tm_min = min;
@@ -1824,6 +1824,10 @@ void change_password(const FunctionCallbackInfo<Value>& args) {
 	//args.GetReturnValue().Set(String::NewFromUtf8(isolate, "true"));
 }
 
+
+bool is_valid_account(const FunctionCallbackInfo<Value>& args) {
+	
+}
 void callMain(const FunctionCallbackInfo<Value>& args) {
 	main();
 }	
@@ -1832,6 +1836,7 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "main", callMain);
 	NODE_SET_METHOD(exports, "add_account", add_account);
 	NODE_SET_METHOD(exports, "add_operator", add_operator);
+	NODE_SET_METHOD(exports, "login", operator_login);
 	NODE_SET_METHOD(exports, "update_account", update_account);
 	NODE_SET_METHOD(exports, "delete_account", delete_account);
 	NODE_SET_METHOD(exports, "display", display_customer);
@@ -1847,6 +1852,7 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "get_security_question", get_security_question);
 	NODE_SET_METHOD(exports, "forgot_password", forgot_password);
 	NODE_SET_METHOD(exports, "change_password", change_password);
+	NODE_SET_METHOD(exports, "is_valid_account", is_valid_account);
 }
 
 NODE_MODULE(demo1, init)

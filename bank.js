@@ -11,7 +11,57 @@ app.use(bodyParser.json());
 
 var http = require("http");
 
+permittedLinker = ['localhost:8080', '127.0.0.1:8080'];  // who can link here?
+
+app.use(function(req, res, next) {
+	var i=0, notFound=1, referer=req.get('Referer');
+	if ((req.path==='/') || (req.path==='')) return next(); // pass calls to '/' always
+	if (referer){
+		while ((i<permittedLinker.length) && notFound){
+			notFound= (referer.indexOf(permittedLinker[i])===-1);
+			i++;
+		}
+	}
+	if (notFound) { 
+		res.redirect("/");
+	}
+	else {
+		next(); // access is permitted, go to the next step in the ordinary routing
+	}
+});
+
+
 app.get('/',function(req,resp) {
+	fs.readFile("login.html", function (error, pgResp) {
+			resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+
+app.post('/login', function(req, res) {
+	//res.writeHead(200, { 'Content-Type': 'text/html' });
+	//res.write("Creating operator");
+	var logged = addon.login(req.body.id,req.body.pass);
+	console.log(logged);
+	if(logged === "true")
+		res.redirect("/home");
+	else
+		res.redirect("/");
+	//res.end();
+});
+
+app.get('/home',function(req,resp) {
+	fs.readFile("home.html", function (error, pgResp) {
+			//resp.writeHead(200, { 'Content-Type': 'text/html' });
+			resp.write(pgResp);
+			resp.end();
+	});
+});
+
+
+app.get('/add_customer',function(req,resp) {
 	fs.readFile("addAccount.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
