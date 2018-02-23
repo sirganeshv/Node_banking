@@ -1056,9 +1056,6 @@ void delete_account(const FunctionCallbackInfo<Value>& args) {
 
 //Display a specific customer
 void display_customer(const FunctionCallbackInfo<Value>& args) {
-	time_t nowtime;
-	tm time;
-	char milli[10];
 	int acc_no = args[0]->Int32Value();
 	int k;
 	for(k = 0;k < customer_list.size();k++) {

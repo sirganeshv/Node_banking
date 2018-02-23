@@ -31,6 +31,8 @@ table, td {
 				success: function(data) {
 					if(data === "false") 
 						alert("Invalid account number");
+					else if(data === "falsetime")
+						alert("Invalid time");
 					else {
 						$('#employee').css("display","initial");
 						var table = document.getElementById("emptable");

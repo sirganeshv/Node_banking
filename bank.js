@@ -272,6 +272,8 @@ app.get('/schedule_transfer',function(req,resp) {
 });
 
 app.post('/schedule_transfer', function(req, res) {
+	var hour = req.body.hour;
+	var min = req.body.min;
 	if(req.body.acc_no === req.body.withdraw_acc_no) {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("You cannot send money to yourself");
@@ -290,6 +292,11 @@ app.post('/schedule_transfer', function(req, res) {
 	else if(addon.is_valid_account(req.body.acc_no) === "false") {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Invalid Reciever Account Number");
+		res.end();
+	}
+	else if(hour < 0 || hour >= 24 || min < 0 || min >= 60) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Time");
 		res.end();
 	}
 	else {
@@ -334,10 +341,22 @@ app.get('/account_statement_range',function(req,resp) {
 
 
 app.post('/account_statement_range', function(req, res) {
+	var hour = req.body.start_hour;
+	var min = req.body.start_min;
 	var is_valid = addon.is_valid_account(req.body.acc_no);
 	if(is_valid === "false") {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("false");
+		res.end();
+	}
+	else if(hour < 0 || hour >= 24 || min < 0 || min >= 60) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("falsetime");
+		res.end();
+	}
+	else if(req.body.stop_hour < 0 || req.body.stop_hour >= 24 || req.body.stop_min < 0 || req.body.stop_min >= 60) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("falsetime");
 		res.end();
 	}
 	else {
@@ -356,6 +375,8 @@ app.get('/standing_instructions',function(req,resp) {
 });
 
 app.post('/standing_instructions', function(req, res) {
+	var hour = req.body.hour;
+	var min = req.body.min;
 	if(req.body.acc_no === req.body.withdraw_acc_no) {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("You cannot send money to yourself");
@@ -374,6 +395,16 @@ app.post('/standing_instructions', function(req, res) {
 	else if(addon.is_valid_account(req.body.acc_no) === "false") {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Invalid Reciever Account Number");
+		res.end();
+	}
+	else if(hour < 0 || hour >= 24 || min < 0 || min >= 60) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Time");
+		res.end();
+	}
+	else if(req.body.period <= 0) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Period");
 		res.end();
 	}
 	else {
@@ -396,6 +427,8 @@ app.get('/fixed_deposit',function(req,resp) {
 });
 
 app.post('/fixed_deposit', function(req, res) {
+	var hour = req.body.hour;
+	var min = req.body.min;
 	var is_valid = addon.is_valid_account(req.body.acc_no);
 	if(is_valid === "false") {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
@@ -405,6 +438,11 @@ app.post('/fixed_deposit', function(req, res) {
 	else if(req.body.money <= 0) {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Enter valid amount");
+		res.end();
+	}
+	else if(req.body.duration <= 0) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Duration");
 		res.end();
 	}
 	else {
@@ -440,7 +478,6 @@ app.post('/forgot_password', function(req, res){
 });
 
 app.post('/security', function(req, res,next){
-	//console.log(addon.forgot_password(req.body.acc_no,req.body.answer).toString());
 	res.write(addon.forgot_password(req.body.acc_no,req.body.answer).toString());
 	res.end();
 });
@@ -449,16 +486,14 @@ app.post('/security', function(req, res,next){
 app.post('/change_password',function(req,resp) {
 	resp.writeHead(200, { 'Content-Type': 'text/html' });
 	addon.change_password(req.body.acc_no,req.body.passphrase);
-	resp.write("Changine passphrase");
-	//resp.write(pgResp);
-	//resp.write(req.body.acc_no.toString());
+	resp.write("Changed passphrase");
 	resp.end();
 });
 
 
 app.listen(8080, function() {
 	addon.main();
-	console.log('Server running at http://127.0.0.1:8080/');
+	console.log('Server running at :8080');
 });
 
 // Console will print the message
