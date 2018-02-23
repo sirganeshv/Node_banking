@@ -193,6 +193,11 @@ app.post('/deposit', function(req, res) {
 		res.write("Invalid Account Number");
 		res.end();
 	}
+	else if(req.body.money <= 0) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Enter valid amount");
+		res.end();
+	}
 	else {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Deposited");
@@ -216,6 +221,11 @@ app.post('/withdraw', function(req, res) {
 		res.write("Invalid Account Number");
 		res.end();
 	}
+	else if(req.body.money <= 0) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Enter valid amount");
+		res.end();
+	}
 	else {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Withdrawn");
@@ -233,10 +243,15 @@ app.get('/transfer',function(req,resp) {
 });
 
 app.post('/transfer', function(req, res) {
-	var is_valid = addon.is_valid_account(req.body.acc_no);
+	var is_valid = addon.is_valid_account(req.body.withdraw_acc_no);
 	if(is_valid === "false") {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Invalid Account Number");
+		res.end();
+	}
+	else if(req.body.money <= 0) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Enter valid amount");
 		res.end();
 	}
 	else {
@@ -260,6 +275,11 @@ app.post('/schedule_transfer', function(req, res) {
 	if(req.body.acc_no === req.body.withdraw_acc_no) {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("You cannot send money to yourself");
+		res.end();
+	}
+	else if(req.body.money <= 0) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Enter valid amount");
 		res.end();
 	}
 	else if(addon.is_valid_account(req.body.withdraw_acc_no) === "false") {
@@ -341,6 +361,11 @@ app.post('/standing_instructions', function(req, res) {
 		res.write("You cannot send money to yourself");
 		res.end();
 	}
+	else if(req.body.money <= 0) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Enter valid amount");
+		res.end();
+	}
 	else if(addon.is_valid_account(req.body.withdraw_acc_no) === "false") {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Invalid Account Number");
@@ -375,6 +400,11 @@ app.post('/fixed_deposit', function(req, res) {
 	if(is_valid === "false") {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Invalid Account Number");
+		res.end();
+	}
+	else if(req.body.money <= 0) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Enter valid amount");
 		res.end();
 	}
 	else {
