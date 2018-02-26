@@ -131,19 +131,17 @@ app.get('/update_customer',function(req,resp) {
 });
 
 app.post('/update_customer', function(req, res) {
+	var is_valid = addon.is_valid_account(req.body.acc_no);
+	if(is_valid === "false") {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid Account number");
+		res.end();
+	}
 	else {
-		var is_valid = addon.is_valid_account(req.body.acc_no);
-		if(is_valid === "false") {
-			res.writeHead(200, { 'Content-Type': 'text/html' });
-			res.write("Invalid Account number");
-			res.end();
-		}
-		else {
-			res.writeHead(200, { 'Content-Type': 'text/html' });
-			addon.update_account(req.body.acc_no,req.body.details,req.body.phone,req.body.address);
-			res.write("Updated");
-			res.end();
-		}
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		addon.update_account(req.body.acc_no,req.body.details,req.body.phone,req.body.address);
+		res.write("Updated");
+		res.end();
 	}
 });
 
