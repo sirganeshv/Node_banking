@@ -226,6 +226,21 @@ app.post('/withdraw', function(req, res) {
 		res.write("Enter valid amount");
 		res.end();
 	}
+	else if(addon.is_passphrase_valid(req.body.acc_no,req.body.customer_passphrase) === 'false') {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid passphrase");
+		res.end();
+	}
+	else if (addon.is_operator_password_correct(req.body.operator_password) === 'false' ) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Operator password wrong");
+		res.end();
+	}
+	else if(addon.is_max_transactions_reached(req.body.acc_no) === 'true') {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Maximum number of transactions reached");
+		res.end();
+	}
 	else {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Withdrawn");
@@ -252,6 +267,11 @@ app.post('/transfer', function(req, res) {
 	else if(req.body.money <= 0) {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Enter valid amount");
+		res.end();
+	}
+	else if(addon.is_max_transactions_reached(req.body.withdraw_acc_no) === 'true') {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Maximum number of transactions reached");
 		res.end();
 	}
 	else {
@@ -297,6 +317,16 @@ app.post('/schedule_transfer', function(req, res) {
 	else if(hour < 0 || hour >= 24 || min < 0 || min >= 60) {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Invalid Time");
+		res.end();
+	}
+	else if(addon.is_passphrase_valid(req.body.withdraw_acc_no,req.body.customer_passphrase) === 'false') {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid passphrase");
+		res.end();
+	}
+	else if (addon.is_operator_password_correct(req.body.operator_password) === 'false' ) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Operator password wrong");
 		res.end();
 	}
 	else {
@@ -407,6 +437,16 @@ app.post('/standing_instructions', function(req, res) {
 		res.write("Invalid Period");
 		res.end();
 	}
+	else if(addon.is_passphrase_valid(req.body.withdraw_acc_no,req.body.customer_passphrase) === 'false') {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid passphraseeeee");
+		res.end();
+	}
+	else if (addon.is_operator_password_correct(req.body.operator_password) === 'false' ) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Operator password wrong");
+		res.end();
+	}
 	else {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Standing instructions added for every ");
@@ -443,6 +483,16 @@ app.post('/fixed_deposit', function(req, res) {
 	else if(req.body.duration <= 0) {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Invalid Duration");
+		res.end();
+	}
+	else if(addon.is_passphrase_valid(req.body.acc_no,req.body.customer_passphrase) === 'false') {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Invalid passphrase");
+		res.end();
+	}
+	else if (addon.is_operator_password_correct(req.body.operator_password) === 'false' ) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Operator password wrong");
 		res.end();
 	}
 	else {

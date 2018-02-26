@@ -1409,7 +1409,7 @@ void schedule_transfer(const FunctionCallbackInfo<Value>& args) {
 		v8::String::Utf8Value param1(args[3]->ToString());
 		std::string customer_passphrase = std::string(*param1);
 		if(!is_passphrase_valid(customer_passphrase,i)) {
-			cout<<"Do you want to use the forget password option ?\n0->No(default)   1->Yes\t";
+			/*cout<<"Do you want to use the forget password option ?\n0->No(default)   1->Yes\t";
 			int choice;
 			cin>>choice;
 			int is_changed;
@@ -1418,11 +1418,10 @@ void schedule_transfer(const FunctionCallbackInfo<Value>& args) {
 				if(!is_changed)
 					return;
 			}
-			else {
+			else {*/
 				customer_list[i].wrong_attempts++;
 				update_customer(customer_list[i]);
 				return;
-			}
 		}
 		v8::String::Utf8Value param2(args[4]->ToString());
 		std::string operator_password = std::string(*param2);
@@ -1634,7 +1633,7 @@ void add_standing_transactions(const FunctionCallbackInfo<Value>& args) {
 		v8::String::Utf8Value param1(args[3]->ToString());
 		std::string customer_passphrase = std::string(*param1);
 		if(!is_passphrase_valid(customer_passphrase,i)) {
-			cout<<"Do you want to use the forget password option ?\n0->No(default)   1->Yes\t";
+			/*cout<<"Do you want to use the forget password option ?\n0->No(default)   1->Yes\t";
 			int choice;
 			cin>>choice;
 			int is_changed;
@@ -1643,11 +1642,11 @@ void add_standing_transactions(const FunctionCallbackInfo<Value>& args) {
 				if(!is_changed)
 					return;
 			}
-			else {
+			else {*/
 				customer_list[i].wrong_attempts++;
 				update_customer(customer_list[i]);
 				return;
-			}
+			//}
 		}
 		v8::String::Utf8Value param2(args[4]->ToString());
 		std::string operator_password = std::string(*param2);
@@ -1823,6 +1822,31 @@ void change_password(const FunctionCallbackInfo<Value>& args) {
 void is_valid_account(const FunctionCallbackInfo<Value>& args) {
 	Isolate* isolate = args.GetIsolate();
 	int acc_no = args[0]->Int32Value();
+	bool is_present;
+	int j;
+	for(j = 0;j < customer_list.size();j++) {
+		if(customer_list[j].acc_no == acc_no) {
+			customer_list.push_back(customer_list[j]);
+			customer_list.erase(customer_list.begin()+j);
+			customer_frequency.push_back(customer_frequency[j]);
+			customer_frequency.erase(customer_frequency.begin() + j);
+			is_present = true;
+			break;
+		}
+	}
+	if(j == customer_list.size())
+		is_present = read_customer(acc_no);
+	if(!is_present) {
+		args.GetReturnValue().Set(String::NewFromUtf8(isolate, "false"));
+		return;
+	}
+	args.GetReturnValue().Set(String::NewFromUtf8(isolate, "true"));
+}
+
+
+void is_passphrase_valid(const FunctionCallbackInfo<Value>& args) {
+	Isolate* isolate = args.GetIsolate();
+	int acc_no = args[0]->Int32Value();
 	int j;
 	for(j = 0;j < customer_list.size();j++) {
 		if(customer_list[j].acc_no == acc_no) {
@@ -1833,14 +1857,48 @@ void is_valid_account(const FunctionCallbackInfo<Value>& args) {
 			break;
 		}
 	}
-	bool is_present;
 	if(j == customer_list.size())
-		is_present = read_customer(acc_no);
-	if(!is_present) {
+		read_customer(acc_no);
+	int i = find_customer_position(acc_no);
+	v8::String::Utf8Value param1(args[1]->ToString());
+	std::string passphrase = std::string(*param1);
+	cout<<"The passphrases are "<< customer_list[i].passphrase << "\t" <<passphrase<<"\n";
+	if(strcmp(passphrase.c_str(),customer_list[i].passphrase)) {
+		cout<<"You have entered a wrong passphrase\n";
+		customer_list[i].wrong_attempts++;
+		args.GetReturnValue().Set(String::NewFromUtf8(isolate, "false"));
+		return;
+	}
+	customer_list[i].wrong_attempts = 0;
+	args.GetReturnValue().Set(String::NewFromUtf8(isolate, "true"));
+	return;
+}
+
+
+void is_operator_password_correct(const FunctionCallbackInfo<Value>& args) {
+	Isolate* isolate = args.GetIsolate();
+	v8::String::Utf8Value param1(args[0]->ToString());
+	std::string password = std::string(*param1);
+	if(strcmp(password.c_str(),current_operator->password)) {
+		cout<<"You have entered wrong password\n";
 		args.GetReturnValue().Set(String::NewFromUtf8(isolate, "false"));
 		return;
 	}
 	args.GetReturnValue().Set(String::NewFromUtf8(isolate, "true"));
+	return;
+}
+
+
+void is_max_transactions_reached(const FunctionCallbackInfo<Value>& args) {
+	Isolate* isolate = args.GetIsolate();
+	int acc_no = args[0]->Int32Value();
+	int j = find_customer_info_position(acc_no);
+	if(customer_infos[j].no_of_transactions == 2) {
+		args.GetReturnValue().Set(String::NewFromUtf8(isolate, "true"));
+		return;
+	}
+	args.GetReturnValue().Set(String::NewFromUtf8(isolate, "false"));
+	return;
 }
 
 
@@ -1869,6 +1927,9 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "forgot_password", forgot_password);
 	NODE_SET_METHOD(exports, "change_password", change_password);
 	NODE_SET_METHOD(exports, "is_valid_account", is_valid_account);
+	NODE_SET_METHOD(exports, "is_passphrase_valid", is_passphrase_valid);
+	NODE_SET_METHOD(exports, "is_operator_password_correct", is_operator_password_correct);
+	NODE_SET_METHOD(exports, "is_max_transactions_reached", is_max_transactions_reached);
 }
 
 NODE_MODULE(demo1, init)
