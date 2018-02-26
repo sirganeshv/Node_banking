@@ -274,6 +274,11 @@ app.post('/transfer', function(req, res) {
 		res.write("Maximum number of transactions reached");
 		res.end();
 	}
+	else if(addon.is_phone_no_valid(req.body.phone_no) === 'false') {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Enter a valid phone number");
+		res.end();
+	}
 	else {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Transfered");

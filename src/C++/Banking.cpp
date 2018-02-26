@@ -1893,6 +1893,20 @@ void is_max_transactions_reached(const FunctionCallbackInfo<Value>& args) {
 	return;
 }
 
+void is_phone_no_valid(const FunctionCallbackInfo<Value>& args) {
+	Isolate* isolate = args.GetIsolate();
+	char phone_no[11];
+	int32_t phone = args[0]->Int32Value();
+	strcpy(phone_no,std::to_string(phone).c_str());
+	vector<customer_details> customers = get_accounts_by_phone_no(phone_no);
+	if(customers.empty()) {
+		args.GetReturnValue().Set(String::NewFromUtf8(isolate, "false"));
+		return;
+	}
+	args.GetReturnValue().Set(String::NewFromUtf8(isolate, "true"));
+	return;
+}
+
 
 void callMain(const FunctionCallbackInfo<Value>& args) {
 	main();
@@ -1922,6 +1936,7 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "is_passphrase_valid", is_passphrase_valid);
 	NODE_SET_METHOD(exports, "is_operator_password_correct", is_operator_password_correct);
 	NODE_SET_METHOD(exports, "is_max_transactions_reached", is_max_transactions_reached);
+	NODE_SET_METHOD(exports, "is_phone_no_valid", is_phone_no_valid);
 }
 
 NODE_MODULE(demo1, init)
