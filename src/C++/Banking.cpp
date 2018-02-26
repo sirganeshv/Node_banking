@@ -1154,7 +1154,6 @@ void display_all(const FunctionCallbackInfo<Value>& args) {
 
 
 void deposit(const FunctionCallbackInfo<Value>& args) {
-	cout<<"inside deposit\n";
 	int32_t acc_no = args[0]->Int32Value();
 	cout<<acc_no<<"\n";
 	int j;
@@ -1170,14 +1169,11 @@ void deposit(const FunctionCallbackInfo<Value>& args) {
 			break;
 		}
 	}
-	cout<<"let us read customer\n";
 	if(j == get_cache_size())
 		bool success = read_customer(acc_no);
-	cout<<"read\n";
 	int i = find_customer_position(acc_no);
 	if(i == -1)
 		return;
-	cout<<"present\n";
 	int32_t deposit_value = args[1]->Int32Value();
 	cout<<deposit_value<<"\n";
 	bool is_successful = deposit_money(i,deposit_value);
@@ -1191,7 +1187,6 @@ void deposit(const FunctionCallbackInfo<Value>& args) {
 
 void withdraw(const FunctionCallbackInfo<Value>& args) {
 	int32_t acc_no = args[0]->Int32Value();
-	cout<<acc_no<<"\n";
 	int j;
 	customer_details customer;
 	for(j = 0;j < get_cache_size();j++) {
@@ -1205,7 +1200,6 @@ void withdraw(const FunctionCallbackInfo<Value>& args) {
 			break;
 		}
 	}
-	cout<<"let us read customer\n";
 	if(j == get_cache_size())
 		bool success = read_customer(acc_no);
 	cout<<"read\n";
@@ -1217,7 +1211,6 @@ void withdraw(const FunctionCallbackInfo<Value>& args) {
 		cout<<"Locked\nDeposit to unlock\n";
 		return;
 	}
-	cout<<"present\n";
 	int32_t withdraw_value = args[1]->Int32Value();
 	
 	v8::String::Utf8Value param1(args[2]->ToString());
@@ -1862,7 +1855,6 @@ void is_passphrase_valid(const FunctionCallbackInfo<Value>& args) {
 	int i = find_customer_position(acc_no);
 	v8::String::Utf8Value param1(args[1]->ToString());
 	std::string passphrase = std::string(*param1);
-	cout<<"The passphrases are "<< customer_list[i].passphrase << "\t" <<passphrase<<"\n";
 	if(strcmp(passphrase.c_str(),customer_list[i].passphrase)) {
 		cout<<"You have entered a wrong passphrase\n";
 		customer_list[i].wrong_attempts++;
