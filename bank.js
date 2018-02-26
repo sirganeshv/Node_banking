@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 var http = require("http");
-
+var is_logged_in = false;
 permittedLinker = ['localhost:8080', '127.0.0.1:8080', '172.24.121.91'];  // who can link here?
 
 app.use(function(req, res, next) {
@@ -33,37 +33,60 @@ app.use(function(req, res, next) {
 
 app.get('/',function(req,resp) {
 	fs.readFile("login.html", function (error, pgResp) {
-			resp.writeHead(200, { 'Content-Type': 'text/html' });
-			resp.write(pgResp);
-			resp.end();
+		//resp.writeHead(200, { 'Content-Type': 'text/html' });
+		resp.write(pgResp);
+		resp.end();
 	});
 });
 
 
 app.post('/login', function(req, res) {
 	var logged = addon.login(req.body.id,req.body.pass);
-	if(logged === "true")
+	if(logged === "true") {
+		is_logged_in = true;
 		res.redirect("/home");
+	}
 	else
-		res.redirect("/");
+		res.reredirect("/");
 	//res.end();
 });
 
+app.get('/logout',function(req,resp) {
+	console.log("loggedout ");
+	is_logged_in = false;
+	fs.readFile("login.html", function (error, pgResp) {
+		//resp.writeHead(200, { 'Content-Type': 'text/html' });
+		resp.write(pgResp);
+		resp.end();
+	});
+});
+
+
 app.get('/home',function(req,resp) {
-	fs.readFile("home.html", function (error, pgResp) {
+	if(is_logged_in === false) {
+		console.log("will i be logged ?");
+		resp.redirect('/');
+	}
+	else {
+		fs.readFile("home.html", function (error, pgResp) {
 			//resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 
 app.get('/add_customer',function(req,resp) {
-	fs.readFile("addAccount.html", function (error, pgResp) {
-			resp.writeHead(200, { 'Content-Type': 'text/html' });
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
+		fs.readFile("addAccount.html", function (error, pgResp) {
+			//resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 app.post('/add_customer', function(req, res) {
@@ -76,11 +99,15 @@ app.post('/add_customer', function(req, res) {
 
 
 app.get('/add_operator',function(req,resp) {
-	fs.readFile("add_operator.html", function (error, pgResp) {
-			resp.writeHead(200, { 'Content-Type': 'text/html' });
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
+		fs.readFile("add_operator.html", function (error, pgResp) {
+			//resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 app.post('/add_operator', function(req, res) {
@@ -92,35 +119,45 @@ app.post('/add_operator', function(req, res) {
 });
 
 app.get('/update_customer',function(req,resp) {
-	fs.readFile("update_details.html", function (error, pgResp) {
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
+		fs.readFile("update_details.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 app.post('/update_customer', function(req, res) {
-	var is_valid = addon.is_valid_account(req.body.acc_no);
-	if(is_valid === "false") {
-		res.writeHead(200, { 'Content-Type': 'text/html' });
-		res.write("Invalid Account number");
-		res.end();
-	}
 	else {
-		res.writeHead(200, { 'Content-Type': 'text/html' });
-		addon.update_account(req.body.acc_no,req.body.details,req.body.phone,req.body.address);
-		res.write("Updated");
-		res.end();
+		var is_valid = addon.is_valid_account(req.body.acc_no);
+		if(is_valid === "false") {
+			res.writeHead(200, { 'Content-Type': 'text/html' });
+			res.write("Invalid Account number");
+			res.end();
+		}
+		else {
+			res.writeHead(200, { 'Content-Type': 'text/html' });
+			addon.update_account(req.body.acc_no,req.body.details,req.body.phone,req.body.address);
+			res.write("Updated");
+			res.end();
+		}
 	}
 });
 
 
 app.get('/delete_account',function(req,resp) {
-	fs.readFile("delete_account.html", function (error, pgResp) {
-			resp.writeHead(200, { 'Content-Type': 'text/html' });
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
+		fs.readFile("delete_account.html", function (error, pgResp) {
+			//resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 
@@ -152,18 +189,22 @@ app.post('/delete_account', function(req, res) {
 
 
 app.get('/display',function(req,resp) {
-	fs.readFile("display.html", function (error, pgResp) {
-			resp.writeHead(200, { 'Content-Type': 'text/html' });
+	if(is_logged_in === false) 
+		resp.redirect('/');
+	else {
+		fs.readFile("display.html", function (error, pgResp) {
+			//resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 
 app.post('/display', function(req, res) {
 	var is_valid = addon.is_valid_account(req.body.acc_no);
 	if(is_valid === "false") {
-		res.writeHead(200, { 'Content-Type': 'text/html' });
+		//res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("false");
 		res.end();
 	}
@@ -175,11 +216,15 @@ app.post('/display', function(req, res) {
 
 
 app.get('/display_all',function(req,resp) {
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
 	fs.readFile("display_all.html", function (error, pgResp) {
-			resp.writeHead(200, { 'Content-Type': 'text/html' });
-			resp.write(pgResp);
-			resp.end();
+		//resp.writeHead(200, { 'Content-Type': 'text/html' });
+		resp.write(pgResp);
+		resp.end();
 	});
+	}
 });
 
 app.post('/display_all', function(req, res) {
@@ -189,11 +234,15 @@ app.post('/display_all', function(req, res) {
 
 
 app.get('/deposit',function(req,resp) {
-	fs.readFile("deposit.html", function (error, pgResp) {
-			resp.writeHead(200, { 'Content-Type': 'text/html' });
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
+		fs.readFile("deposit.html", function (error, pgResp) {
+			//resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 app.post('/deposit', function(req, res) {
@@ -217,11 +266,15 @@ app.post('/deposit', function(req, res) {
 });
 
 app.get('/withdraw',function(req,resp) {
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
 	fs.readFile("withdraw.html", function (error, pgResp) {
-			resp.writeHead(200, { 'Content-Type': 'text/html' });
-			resp.write(pgResp);
-			resp.end();
+		//resp.writeHead(200, { 'Content-Type': 'text/html' });
+		resp.write(pgResp);
+		resp.end();
 	});
+	}
 });
 
 app.post('/withdraw', function(req, res) {
@@ -260,11 +313,15 @@ app.post('/withdraw', function(req, res) {
 });
 
 app.get('/transfer',function(req,resp) {
-	fs.readFile("transfer.html", function (error, pgResp) {
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
+		fs.readFile("transfer.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 app.post('/transfer', function(req, res) {
@@ -299,11 +356,15 @@ app.post('/transfer', function(req, res) {
 
 
 app.get('/schedule_transfer',function(req,resp) {
-	fs.readFile("schedule_transfer.html", function (error, pgResp) {
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
+		fs.readFile("schedule_transfer.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 app.post('/schedule_transfer', function(req, res) {
@@ -359,11 +420,15 @@ app.post('/schedule_transfer', function(req, res) {
 
 
 app.get('/account_statement',function(req,resp) {
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
 	fs.readFile("account_statement.html", function (error, pgResp) {
-			resp.writeHead(200, { 'Content-Type': 'text/html' });
-			resp.write(pgResp);
-			resp.end();
+		resp.writeHead(200, { 'Content-Type': 'text/html' });
+		resp.write(pgResp);
+		resp.end();
 	});
+	}
 });
 
 
@@ -382,11 +447,15 @@ app.post('/account_statement', function(req, res) {
 
 
 app.get('/account_statement_range',function(req,resp) {
-	fs.readFile("account_statement_range.html", function (error, pgResp) {
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
+		fs.readFile("account_statement_range.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 
@@ -417,15 +486,18 @@ app.post('/account_statement_range', function(req, res) {
 
 
 app.get('/standing_instructions',function(req,resp) {
-	fs.readFile("standing_instructions.html", function (error, pgResp) {
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
+		fs.readFile("standing_instructions.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 app.post('/standing_instructions', function(req, res) {
-	var hour = req.body.hour;
 	var min = req.body.min;
 	if(req.body.acc_no === req.body.withdraw_acc_no) {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
@@ -484,11 +556,15 @@ app.post('/standing_instructions', function(req, res) {
 
 
 app.get('/fixed_deposit',function(req,resp) {
-	fs.readFile("fixed_deposit.html", function (error, pgResp) {
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
+		fs.readFile("fixed_deposit.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 app.post('/fixed_deposit', function(req, res) {
@@ -529,11 +605,15 @@ app.post('/fixed_deposit', function(req, res) {
 });
 
 app.get('/forgot_password',function(req,resp) {
-	fs.readFile("forgot_password.html", function (error, pgResp) {
+	if(is_logged_in === false)
+		resp.redirect('/');
+	else {
+		fs.readFile("forgot_password.html", function (error, pgResp) {
 			resp.writeHead(200, { 'Content-Type': 'text/html' });
 			resp.write(pgResp);
 			resp.end();
-	});
+		});
+	}
 });
 
 app.post('/forgot_password', function(req, res){
