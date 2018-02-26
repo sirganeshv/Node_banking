@@ -131,6 +131,16 @@ app.post('/delete_account', function(req, res) {
 		res.write("Invalid Account number");
 		res.end();
 	}
+	else if(addon.is_customer_under_current_operator(req.body.acc_no) === 'false') {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("The customer is under another operator");
+		res.end();
+	}
+	else if (addon.is_operator_password_correct(req.body.operator_password) === 'false' ) {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("Operator password wrong");
+		res.end();
+	}
 	else {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Deleted");
@@ -329,6 +339,11 @@ app.post('/schedule_transfer', function(req, res) {
 		res.write("Invalid passphrase");
 		res.end();
 	}
+	else if(addon.is_customer_under_current_operator(req.body.acc_no) === 'false') {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("The customer is under another operator");
+		res.end();
+	}
 	else if (addon.is_operator_password_correct(req.body.operator_password) === 'false' ) {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Operator password wrong");
@@ -445,6 +460,11 @@ app.post('/standing_instructions', function(req, res) {
 	else if(addon.is_passphrase_valid(req.body.withdraw_acc_no,req.body.customer_passphrase) === 'false') {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.write("Invalid passphraseeeee");
+		res.end();
+	}
+	else if(addon.is_customer_under_current_operator(req.body.acc_no) === 'false') {
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write("The customer is under another operator");
 		res.end();
 	}
 	else if (addon.is_operator_password_correct(req.body.operator_password) === 'false' ) {

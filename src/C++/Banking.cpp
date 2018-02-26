@@ -950,9 +950,9 @@ void add_account(const FunctionCallbackInfo<Value>& args){
 	struct transaction initial_transaction;
 	initial_transaction.acc_no = customer.acc_no;
 	transactions.push_back(initial_transaction);
-	cout<<"Operator id is "<<current_operator->id<<"\n";
+	//cout<<"Operator id is "<<current_operator->id<<"\n";
 	current_operator->customer_acc_no_list[current_operator->no_of_customers] = customer.acc_no;
-	cout<<"customer under operator is "<<current_operator->customer_acc_no_list[0];
+	//cout<<"customer under operator is "<<current_operator->customer_acc_no_list[0];
 	current_operator->no_of_customers++;
 	struct customer_info customer_information;
 	customer_information.acc_no = customer.acc_no;
@@ -1024,10 +1024,10 @@ void delete_account(const FunctionCallbackInfo<Value>& args) {
 	int i = find_customer_position(acc_no);
 	if(i == -1) 
 		return;
-	if(!is_customer_under_current_operator(i) && !current_operator->is_admin ) {
+	/*if(!is_customer_under_current_operator(i) && !current_operator->is_admin ) {
 		cout<<"The customer is under a different operator";
 		return;
-	}
+	}*/
 	v8::String::Utf8Value param1(args[1]->ToString());
 	std::string operator_password = std::string(*param1);
 	if(!is_operator_password_correct(operator_password))
@@ -1362,10 +1362,10 @@ void schedule_transfer(const FunctionCallbackInfo<Value>& args) {
 	int i = find_customer_position(withdraw_acc_no);
 	if(i == -1) 
 		return;
-	if(!is_customer_under_current_operator(i) && !current_operator->is_admin ) {
+	/*if(!is_customer_under_current_operator(i) && !current_operator->is_admin ) {
 		cout<<"The customer is under a different operator";
 		return;
-	}
+	}*/
 	int amount = args[1] -> Int32Value();
 	while(amount <= 0) {
 		cout<<"Enter valid amount\n";
@@ -1587,10 +1587,10 @@ void add_standing_transactions(const FunctionCallbackInfo<Value>& args) {
 	int i = find_customer_position(withdraw_acc_no);
 	if(i == -1) 
 		return;
-	if(!is_customer_under_current_operator(i) && !current_operator->is_admin ) {
+	/*if(!is_customer_under_current_operator(i) && !current_operator->is_admin ) {
 		cout<<"The customer is under a different operator";
 		return;
-	}
+	}*/
 	int amount = args[1]->Int32Value();
 	while(amount <= 0) {
 		cout<<"Enter valid amount\n";
@@ -1907,6 +1907,35 @@ void is_phone_no_valid(const FunctionCallbackInfo<Value>& args) {
 	return;
 }
 
+void is_customer_under_current_operator(const FunctionCallbackInfo<Value>& args) {
+	Isolate* isolate = args.GetIsolate();
+	int acc_no = args[0]->Int32Value();
+	int j;
+	for(j = 0;j < customer_list.size();j++) {
+		if(customer_list[j].acc_no == acc_no) {
+			customer_list.push_back(customer_list[j]);
+			customer_list.erase(customer_list.begin()+j);
+			customer_frequency.push_back(customer_frequency[j]);
+			customer_frequency.erase(customer_frequency.begin() + j);
+			break;
+		}
+	}
+	if(j == customer_list.size())
+		read_customer(acc_no);
+	int i = find_customer_position(acc_no);
+	bool status = false;
+	for(int j = 0;j < current_operator->no_of_customers;j++) {
+		if(current_operator->customer_acc_no_list[j] == customer_list[i].acc_no) {
+			status = true;
+			break;
+		}
+	}
+	if(!current_operator->is_admin && !status) {
+		args.GetReturnValue().Set(String::NewFromUtf8(isolate, "false"));
+		return;
+	}
+	args.GetReturnValue().Set(String::NewFromUtf8(isolate, "true"));
+}
 
 void callMain(const FunctionCallbackInfo<Value>& args) {
 	main();
@@ -1937,6 +1966,7 @@ void init(Local<Object> exports) {
 	NODE_SET_METHOD(exports, "is_operator_password_correct", is_operator_password_correct);
 	NODE_SET_METHOD(exports, "is_max_transactions_reached", is_max_transactions_reached);
 	NODE_SET_METHOD(exports, "is_phone_no_valid", is_phone_no_valid);
+	NODE_SET_METHOD(exports, "is_customer_under_current_operator", is_customer_under_current_operator);
 }
 
 NODE_MODULE(demo1, init)
